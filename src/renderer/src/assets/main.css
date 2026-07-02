@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-forge-bg: #000000;
+  --color-forge-panel: #0a0a0a;
+  --color-forge-surface: #141414;
+  --color-forge-border: #222222;
+  --color-forge-border-focus: #444444;
+  
+  --color-forge-amber: #FFB000;
+  --color-forge-amber-hover: #FFC033;
+  --color-forge-amber-active: #E69D00;
+  --color-forge-amber-dim: rgba(255, 176, 0, 0.15);
+  
+  --color-forge-text: #F0F0F0;
+  --color-forge-text-muted: #888888;
+  --color-forge-error: #FF4444;
+  --color-forge-error-dim: rgba(255, 68, 68, 0.15);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Shadows (Motion & Elevation) */
+  --shadow-glow: 0 0 10px rgba(255, 176, 0, 0.15);
+  --shadow-glow-strong: 0 0 20px rgba(255, 176, 0, 0.3);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-forge-bg);
+    color: var(--color-forge-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  /* Industrial Grid */
+  .forge-grid-bg {
+    background-size: 24px 24px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+}
