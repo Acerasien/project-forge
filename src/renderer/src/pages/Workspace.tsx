@@ -14,6 +14,7 @@ import { useDocumentStore } from '../store/useDocumentStore'
 import { useArtifactStore } from '../store/useArtifactStore'
 import { documentManager } from '../managers/DocumentManager'
 import { v4 as uuidv4 } from 'uuid'
+import { FileText, Sparkles, Download, ChevronDown, Trash2, Maximize2, ChevronUp, Send, Terminal, ChevronRight } from 'lucide-react'
 
 export const Workspace: React.FC = () => {
   const { initiatives, activeInitiativeId } = useInitiativeStore()
@@ -26,7 +27,6 @@ export const Workspace: React.FC = () => {
   const autoTool = activeDocument ? ToolRegistry.getToolForDocument(activeDocument) : null
   const [forcedToolId, setForcedToolId] = useState<string | null>(null)
   const activeToolId = forcedToolId || autoTool?.id || ''
-  const [intelligence, setIntelligence] = useState<Record<string, unknown>>({})
 
   const {
     activeConversationId,
@@ -72,26 +72,8 @@ export const Workspace: React.FC = () => {
     }
   }, [activeInitiativeId, loadConversations, createConversation, loadMessages])
 
-  const { artifacts, updateStatus } = useArtifactStore()
-
-  useEffect(() => {
-    const fetchIntelligence = async (): Promise<void> => {
-      const newIntelligence: Record<string, unknown> = {}
-      for (const artifact of useArtifactStore.getState().artifacts) {
-        try {
-          const res = await window.forge.validation.getLatestIntelligence(artifact.id)
-          if (res.success && res.data) {
-            newIntelligence[artifact.id] = res.data
-          }
-        } catch {
-          // ignore
-        }
-      }
-      setIntelligence(newIntelligence)
-    }
-    fetchIntelligence()
-  }, [artifacts])
-
+  const [isChatOpen, setIsChatOpen] = useState(true)
+  const [isTerminalOpen, setIsTerminalOpen] = useState(true)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const workspaceHostRef = useRef<ToolHandle>(null)
 
@@ -99,7 +81,7 @@ export const Workspace: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
-        setIsCommandPaletteOpen(true)
+        setIsChatOpen((prev) => !prev)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -240,178 +222,33 @@ export const Workspace: React.FC = () => {
   const registeredTools = ToolRegistry.getAll()
   const activeTool = ToolRegistry.get(activeToolId)
 
-  const handleArtifactApprove = async (e: React.MouseEvent, id: string): Promise<void> => {
-    e.stopPropagation()
-    const res = await updateStatus(id, 'Approved')
-    if (!res.success && res.isGateWarning) {
-      if (confirm(`Warning: ${res.error}\n\nDo you want to override and approve anyway?`)) {
-        await updateStatus(id, 'Approved', true)
-      }
-    } else if (!res.success) {
-      alert(`Error: ${res.error}`)
-    }
-  }
-
-  const handleArtifactRequestReview = async (e: React.MouseEvent, id: string): Promise<void> => {
-    e.stopPropagation()
-    await updateStatus(id, 'NeedsReview')
-  }
-
-  const handleAIReview = async (e: React.MouseEvent, id: string): Promise<void> => {
-    e.stopPropagation()
-    try {
-      const res = await window.forge.validation.reviewArtifact(id)
-      if (res.success && res.data) {
-        setIntelligence((prev) => ({ ...prev, [id]: res.data }))
-      } else if (!res.success) {
-        alert(`AI Review failed: ${res.error.message}`)
-      }
-    } catch (err: unknown) {
-      alert(`AI Review error: ${err instanceof Error ? err.message : String(err)}`)
-    }
-  }
-
-  const leftPanel = (
-    <div className="h-full flex flex-col gap-4">
-      {/* Artifacts Section */}
-      <div className="flex flex-col">
-        <div className="text-xs font-mono text-forge-text-muted mb-2 border-b border-forge-border pb-2 px-4 mt-4">
-          ARTIFACTS (WORKFLOW)
-        </div>
-        <div className="px-4 flex flex-col gap-1">
-          {artifacts.length === 0 && (
-            <div className="text-forge-text-muted opacity-50 text-sm italic">
-              No artifacts found.
-            </div>
-          )}
-          {artifacts.map((artifact) => (
-            <div
-              key={artifact.id}
-              className="group flex flex-col text-sm font-mono truncate px-2 py-1 rounded transition-colors text-forge-text-muted hover:bg-forge-surface/50 hover:text-forge-text"
-            >
-              <div className="flex justify-between items-center w-full">
-                <span>{artifact.title}</span>
-                <span
-                  className={cn(
-                    'text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded',
-                    artifact.status === 'Approved'
-                      ? 'bg-green-500/10 text-green-500'
-                      : artifact.status === 'NeedsReview'
-                        ? 'bg-forge-amber/10 text-forge-amber'
-                        : 'bg-forge-surface text-forge-text-muted'
-                  )}
-                >
-                  {artifact.status}
-                </span>
-              </div>
-
-              {/* Intelligence Display */}
-              {Boolean(intelligence[artifact.id]) && (
-                <div className="flex gap-2 text-[10px] mt-1 items-center">
-                  <span className="text-forge-text-muted">
-                    Comp:{' '}
-                    {String(
-                      (intelligence[artifact.id] as Record<string, unknown>).completenessScore ??
-                        '-'
-                    )}
-                    %
-                  </span>
-                  <span className="text-forge-text-muted">
-                    Conf:{' '}
-                    {String(
-                      (intelligence[artifact.id] as Record<string, unknown>).aiConfidence ?? '-'
-                    )}
-                    %
-                  </span>
-                  {Boolean((intelligence[artifact.id] as Record<string, unknown>).isStale) && (
-                    <span className="text-forge-amber animate-pulse">Stale</span>
-                  )}
-                </div>
-              )}
-
-              <div className="hidden group-hover:flex gap-2 mt-1 flex-wrap">
-                {artifact.status !== 'Approved' && (
-                  <button
-                    onClick={(e) => handleArtifactApprove(e, artifact.id)}
-                    className="text-[10px] text-green-500 hover:underline"
-                  >
-                    Approve
-                  </button>
-                )}
-                {artifact.status === 'Approved' && (
-                  <button
-                    onClick={(e) => handleArtifactRequestReview(e, artifact.id)}
-                    className="text-[10px] text-forge-amber hover:underline"
-                  >
-                    Request Review
-                  </button>
-                )}
-                <button
-                  onClick={(e) => handleAIReview(e, artifact.id)}
-                  className="text-[10px] text-purple-400 hover:underline"
-                >
-                  AI Review
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Documents Section */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="text-xs font-mono text-forge-text-muted mb-2 border-b border-forge-border pb-2 px-4">
-          DOCUMENTS
-        </div>
-        <div className="flex-1 overflow-y-auto px-4 flex flex-col gap-1">
-          {documents.length === 0 && (
-            <div className="text-forge-text-muted opacity-50 text-sm italic">
-              No documents found.
-            </div>
-          )}
-          {documents.map((doc) => (
-            <button
-              key={doc.id}
-              onClick={() => {
-                setForcedToolId(null)
-                documentManager.openDocument(doc.id)
-              }}
-              className={cn(
-                'text-left text-sm font-mono truncate px-2 py-1 rounded transition-colors',
-                activeDocumentId === doc.id
-                  ? 'bg-forge-amber/20 text-forge-amber'
-                  : 'text-forge-text-muted hover:bg-forge-surface/50 hover:text-forge-text'
-              )}
-            >
-              {doc.name}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+  // Left Panel removed as it is now integrated into Sidebar.tsx
 
   const mainPanel = (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between border-b border-forge-border pb-2 px-4 mt-4">
-        <div className="flex gap-4">
+      <div className="flex items-center justify-between border-b border-forge-border pb-0 px-4 pt-2">
+        <div className="flex gap-6 h-full">
           {registeredTools.map((tool) => (
             <button
               key={tool.id}
               onClick={() => setForcedToolId(tool.id)}
               className={cn(
-                'text-xs font-mono transition-colors focus:outline-none',
+                'text-sm font-medium pb-3 transition-colors focus:outline-none relative capitalize',
                 activeToolId === tool.id
-                  ? 'text-forge-amber'
-                  : 'text-forge-text-muted hover:text-forge-text'
+                  ? 'text-white'
+                  : 'text-forge-text-muted hover:text-white'
               )}
             >
-              {tool.displayName}
+              {tool.displayName.toLowerCase()}
+              {activeToolId === tool.id && (
+                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-forge-amber" />
+              )}
             </button>
           ))}
         </div>
-        <div className="text-xs font-mono text-forge-text-muted opacity-50 uppercase tracking-widest">
-          {activeTool ? `${activeTool.displayName}_SURFACE` : 'NO_TOOL_SELECTED'}
+        <div className="flex items-center gap-1 text-xs text-forge-text-muted mb-2 cursor-pointer hover:text-white transition-colors">
+          <span>{activeTool ? activeTool.displayName : 'No tool selected'}</span>
+          <ChevronDown size={14} />
         </div>
       </div>
       <div className="flex-1 overflow-hidden relative">
@@ -426,99 +263,35 @@ export const Workspace: React.FC = () => {
             }}
           />
         ) : (
-          <div className="h-full flex items-center justify-center text-forge-text-muted opacity-50 font-mono text-sm">
-            Select a document to begin.
+          <div className="h-full flex flex-col items-center justify-center text-forge-text-muted opacity-50 gap-4">
+            <FileText size={64} className="opacity-50" />
+            <div className="text-center">
+              <p className="text-sm text-forge-text font-medium mb-1">Select a document to begin.</p>
+              <p className="text-xs">Use the file explorer or flow view to open a document.</p>
+            </div>
           </div>
         )}
       </div>
     </div>
   )
 
-  const bottomPanel = (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between border-b border-forge-border pb-2 px-4 mt-4">
-        <div className="text-xs font-mono text-forge-text-muted uppercase tracking-widest">
-          TERMINAL / AI CHAT
-        </div>
-        {isGenerating && (
-          <button
-            onClick={handleCancel}
-            className="text-xs font-mono text-forge-error hover:text-red-400 focus:outline-none"
-          >
-            [Stop Generating]
-          </button>
-        )}
+  const rightPanel = (
+    <div className="h-full flex flex-col bg-forge-panel">
+      <div className="flex items-center justify-between border-b border-forge-border pb-3 px-4 pt-4 shrink-0">
+        <span className="text-sm font-semibold text-white">AI Chat</span>
+        <button 
+          onClick={() => setIsChatOpen(false)}
+          className="text-forge-text-muted hover:text-white transition-colors"
+        >
+          <ChevronRight size={16} />
+        </button>
       </div>
-      <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
-        <div className="flex-1 overflow-y-auto flex flex-col gap-4 text-sm font-mono text-forge-text-muted">
-          {activeWorkflow && (
-            <div className="bg-forge-amber/5 border border-forge-amber/30 rounded p-3 text-xs mb-4">
-              <div className="font-bold text-forge-amber uppercase tracking-widest mb-2 border-b border-forge-amber/20 pb-1">
-                Engineering Agent Workflow
-              </div>
-              {!activeWorkflow.plan ? (
-                <div className="animate-pulse">Building context and planning...</div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <div className="text-forge-text-muted">
-                    Goal: {String(activeWorkflow.plan.goal)}
-                  </div>
-                  <div className="flex flex-col gap-1 mt-2">
-                    {Array.isArray(activeWorkflow.plan.steps) &&
-                      activeWorkflow.plan.steps.map(
-                        (step: Record<string, unknown>, idx: number) => {
-                          const stepEvents = activeWorkflow.events.filter(
-                            (evt) =>
-                              evt.data && (evt.data as Record<string, unknown>).stepId === step.id
-                          )
-                          const lastEvent = stepEvents[stepEvents.length - 1]
-                          const isRunning = lastEvent?.type === 'step_started'
-                          const isCompleted = lastEvent?.type === 'step_completed'
-                          const isFailed = lastEvent?.type === 'step_failed'
-
-                          return (
-                            <div
-                              key={idx}
-                              className={cn(
-                                'flex items-center gap-2 p-1 rounded',
-                                isRunning
-                                  ? 'bg-forge-amber/10 text-forge-amber'
-                                  : isCompleted
-                                    ? 'text-green-500/70'
-                                    : isFailed
-                                      ? 'text-forge-error'
-                                      : 'opacity-50'
-                              )}
-                            >
-                              <span>
-                                {isRunning ? '⟳' : isCompleted ? '✓' : isFailed ? '✗' : '·'}
-                              </span>
-                              <span>{String(step.capabilityName)}</span>
-                              <span className="opacity-50 ml-2">- {String(step.description)}</span>
-                            </div>
-                          )
-                        }
-                      )}
-                  </div>
-                  {activeWorkflow.events.some((e) => e.type === 'completed') && (
-                    <div className="mt-2 text-green-500 font-bold uppercase tracking-widest">
-                      Workflow Completed
-                    </div>
-                  )}
-                  {activeWorkflow.events.some(
-                    (e) => e.type === 'error' || e.type === 'step_failed'
-                  ) && (
-                    <div className="mt-2 text-forge-error font-bold uppercase tracking-widest">
-                      Workflow Failed
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {messages.length === 0 && !activeWorkflow ? (
-            <div className="opacity-50">Standby for generation...</div>
+      
+      <div className="flex-1 flex flex-col p-4 overflow-hidden">
+        {/* Messages Thread */}
+        <div className="flex-1 overflow-y-auto flex flex-col gap-4 text-xs text-forge-text-muted font-mono mb-4 pr-1">
+          {messages.length === 0 ? (
+            <div className="opacity-50 text-xs italic">Start a conversation with the AI assistant...</div>
           ) : (
             messages.map((msg) => (
               <div
@@ -529,7 +302,7 @@ export const Workspace: React.FC = () => {
                   msg.role === 'tool' ? 'hidden' : ''
                 )}
               >
-                <div className="text-[10px] opacity-50 uppercase tracking-widest mb-1">
+                <div className="text-[9px] opacity-40 uppercase tracking-widest mb-1">
                   {msg.role}
                 </div>
 
@@ -541,7 +314,7 @@ export const Workspace: React.FC = () => {
                         (tc: Record<string, unknown>, idx: number) => (
                           <div
                             key={idx}
-                            className="flex items-center gap-2 text-xs font-mono text-forge-amber/70 bg-forge-amber/5 px-2 py-1 rounded border border-forge-amber/20"
+                            className="flex items-center gap-1.5 text-[10px] font-mono text-forge-amber/70 bg-forge-amber/5 px-2 py-0.5 rounded border border-forge-amber/20"
                           >
                             <span className={tc.status === 'running' ? 'animate-pulse' : ''}>
                               {tc.status === 'running' ? '⟳' : '✓'}
@@ -556,10 +329,10 @@ export const Workspace: React.FC = () => {
                 {msg.content && (
                   <div
                     className={cn(
-                      'px-3 py-2 rounded max-w-[80%] whitespace-pre-wrap',
+                      'px-3 py-2 rounded-lg max-w-[90%] text-xs whitespace-pre-wrap leading-relaxed shadow-sm',
                       msg.role === 'user'
-                        ? 'bg-forge-amber/10 border border-forge-amber/30 text-forge-amber'
-                        : 'bg-forge-surface border border-forge-border'
+                        ? 'bg-forge-amber/15 border border-forge-amber/30 text-forge-amber'
+                        : 'bg-forge-surface border border-forge-border text-forge-text'
                     )}
                   >
                     {msg.content}
@@ -569,18 +342,119 @@ export const Workspace: React.FC = () => {
             ))
           )}
         </div>
-        <div className="flex gap-2">
+
+        {/* Chat Input */}
+        <div className="relative w-full">
           <input
             type="text"
-            className="flex-1 bg-forge-surface border border-forge-border rounded px-3 py-1 text-sm font-mono focus:outline-none focus:border-forge-amber transition-colors"
-            placeholder="Enter prompt..."
+            className="w-full bg-forge-surface/50 border border-forge-border rounded-full px-4 py-2 pr-10 text-xs focus:outline-none focus:border-forge-amber transition-colors shadow-sm text-forge-text"
+            placeholder="Ask AI anything..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
           />
-          <Button onClick={handleGenerate} disabled={isGenerating || !prompt.trim()}>
-            Send
-          </Button>
+          <button 
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-forge-text-muted hover:text-forge-amber transition-colors disabled:opacity-50"
+            onClick={handleGenerate}
+            disabled={isGenerating || !prompt.trim()}
+          >
+            <Send size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  const bottomPanel = (
+    <div className="h-full flex flex-col bg-forge-panel font-mono text-xs text-forge-text-muted">
+      <div className="flex items-center justify-between border-b border-forge-border pb-2 px-4 pt-3 shrink-0">
+        <div className="flex gap-4">
+          <span className="font-semibold text-white">Terminal Console</span>
+        </div>
+        <div className="flex items-center gap-4">
+          {isGenerating && (
+            <button
+              onClick={handleCancel}
+              className="text-[10px] text-forge-error hover:text-red-400 focus:outline-none"
+            >
+              [Stop Generating]
+            </button>
+          )}
+          <button className="flex items-center gap-1 hover:text-white transition-colors text-[10px]">
+            <Trash2 size={12} /> Clear
+          </button>
+          <button className="hover:text-white transition-colors">
+            <Maximize2 size={12} />
+          </button>
+          <button 
+            onClick={() => setIsTerminalOpen(false)}
+            className="hover:text-white transition-colors"
+          >
+            <ChevronUp size={14} className="rotate-180" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-2">
+        {/* Engineering Agent Workflow Status */}
+        {activeWorkflow && (
+          <div className="bg-forge-amber/5 border border-forge-amber/20 rounded-lg p-3 text-xs mb-3">
+            <div className="font-bold text-forge-amber uppercase tracking-wider mb-2 border-b border-forge-amber/15 pb-1">
+              Engineering Agent Workflow
+            </div>
+            {!activeWorkflow.plan ? (
+              <div className="animate-pulse flex items-center gap-2">
+                <div className="w-2 h-2 bg-forge-amber rounded-full animate-ping"></div>
+                Building context and planning...
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <div>Goal: {String(activeWorkflow.plan.goal)}</div>
+                <div className="flex flex-col gap-1.5 mt-2">
+                  {Array.isArray(activeWorkflow.plan.steps) &&
+                    activeWorkflow.plan.steps.map(
+                      (step: Record<string, unknown>, idx: number) => {
+                        const stepEvents = activeWorkflow.events.filter(
+                          (evt) =>
+                            evt.data && (evt.data as Record<string, unknown>).stepId === step.id
+                        )
+                        const lastEvent = stepEvents[stepEvents.length - 1]
+                        const isRunning = lastEvent?.type === 'step_started'
+                        const isCompleted = lastEvent?.type === 'step_completed'
+                        const isFailed = lastEvent?.type === 'step_failed'
+
+                        return (
+                          <div
+                            key={idx}
+                            className={cn(
+                              'flex items-center gap-2 p-1 rounded',
+                              isRunning
+                                ? 'bg-forge-amber/10 text-forge-amber'
+                                : isCompleted
+                                  ? 'text-green-500/70'
+                                  : isFailed
+                                    ? 'text-forge-error'
+                                    : 'opacity-50'
+                            )}
+                          >
+                            <span>
+                              {isRunning ? '⟳' : isCompleted ? '✓' : isFailed ? '✗' : '·'}
+                            </span>
+                            <span>{String(step.capabilityName)}</span>
+                            <span className="opacity-50 ml-2">- {String(step.description)}</span>
+                          </div>
+                        )
+                      }
+                    )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 text-forge-text-muted mt-auto">
+          <span>$ _</span>
+          <span className="w-2 h-4 bg-forge-text-muted animate-pulse"></span>
         </div>
       </div>
     </div>
@@ -592,14 +466,16 @@ export const Workspace: React.FC = () => {
         title={activeInitiative.name}
         description="Workspace environment ready."
         action={
-          <div className="flex gap-2">
-            <Button size="sm" variant="secondary" onClick={() => setIsCommandPaletteOpen(true)}>
-              Ask AI (⌘K)
+          <div className="flex gap-3">
+            <Button size="sm" variant="secondary" onClick={() => setIsCommandPaletteOpen(true)} className="flex items-center gap-2 border border-forge-amber/30 hover:border-forge-amber shadow-[0_0_10px_rgba(255,176,0,0.1)]">
+              <Sparkles size={14} className="text-forge-amber" /> Ask AI (⌘K)
             </Button>
-            <Button size="sm">Export</Button>
+            <Button size="sm" className="flex items-center gap-2 bg-white text-black hover:bg-gray-200">
+              <Download size={14} /> Export
+            </Button>
           </div>
         }
-        className="shrink-0"
+        className="shrink-0 px-1"
       />
 
       <CommandPalette
@@ -608,8 +484,33 @@ export const Workspace: React.FC = () => {
         onSubmit={handleCommandPaletteSubmit}
       />
 
-      <div className="flex-1 min-h-0 mt-4 pb-4">
-        <WorkspaceLayout leftPanel={leftPanel} mainPanel={mainPanel} bottomPanel={bottomPanel} />
+      <div className="flex-1 min-h-0 mt-4 pb-1 flex flex-col gap-2">
+        <div className="flex-1 min-h-0">
+          <WorkspaceLayout 
+            mainPanel={mainPanel} 
+            bottomPanel={isTerminalOpen ? bottomPanel : undefined} 
+            rightPanel={isChatOpen ? rightPanel : undefined} 
+          />
+        </div>
+
+        {/* Status Bottom Bar to re-open collapsed panels */}
+        <div className="h-6 flex items-center justify-between px-4 border-t border-forge-border/20 bg-forge-panel/50 rounded text-[10px] text-forge-text-muted select-none mt-1">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsTerminalOpen((prev) => !prev)}
+              className={cn("hover:text-white transition-colors flex items-center gap-1.5 font-mono", isTerminalOpen && "text-forge-amber")}
+            >
+              <Terminal size={10} /> {isTerminalOpen ? 'Hide Terminal' : 'Show Terminal'}
+            </button>
+            <button 
+              onClick={() => setIsChatOpen((prev) => !prev)}
+              className={cn("hover:text-white transition-colors flex items-center gap-1.5 font-mono", isChatOpen && "text-forge-amber")}
+            >
+              <Sparkles size={10} /> {isChatOpen ? 'Hide AI Chat' : 'Show AI Chat (⌘K)'}
+            </button>
+          </div>
+          <div className="font-mono opacity-50">FORGE ENVIRONMENT READY</div>
+        </div>
       </div>
     </div>
   )

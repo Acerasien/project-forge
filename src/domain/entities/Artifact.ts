@@ -2,7 +2,7 @@ export type ArtifactType =
   | 'Vision'
   | 'Requirements'
   | 'Architecture'
-  | 'SystemDesign' // Deprecated, use architecture components
+  | 'SystemDesign'
   | 'SystemArchitecture'
   | 'ComponentDesign'
   | 'DeploymentArchitecture'
@@ -11,6 +11,8 @@ export type ArtifactType =
   | 'ADR'
   | 'Task'
   | 'AISession'
+  | 'Schema'
+  | 'Codebase'
 
 export type ArtifactStatus = 'Draft' | 'Approved' | 'NeedsReview'
 

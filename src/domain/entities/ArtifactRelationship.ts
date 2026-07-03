@@ -1,5 +1,12 @@
 export type RelationshipType =
-  'DerivedFrom' | 'InformedBy' | 'DecidedBy' | 'Implements' | 'Generated' | 'SupersededBy'
+  | 'DerivedFrom'
+  | 'InformedBy'
+  | 'DecidedBy'
+  | 'Implements'
+  | 'Generated'
+  | 'SupersededBy'
+  | 'DefinesSchema'
+  | 'ImplementsComponent'
 
 export class ArtifactRelationship {
   constructor(

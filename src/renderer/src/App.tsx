@@ -144,7 +144,7 @@ function App(): React.JSX.Element {
         <div className="flex h-screen w-screen bg-forge-bg text-forge-text overflow-hidden forge-grid-bg selection:bg-forge-amber/30">
           <Sidebar />
 
-          <main className="flex-1 flex flex-col p-8 overflow-y-auto relative z-0">
+          <main className="flex-1 flex flex-col overflow-hidden relative z-0">
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/workspace" element={<Workspace />} />

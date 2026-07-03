@@ -37,6 +37,8 @@ import {
 import { ReviewArtifactCapability } from '../capabilities/ReviewArtifactCapability'
 import { RequirementsCapabilityPack } from '../capabilities/requirements/RequirementsCapabilityPack'
 import { ArchitectureCapabilityPack } from '../capabilities/architecture/ArchitectureCapabilityPack'
+import { GenerationWorkspace } from './GenerationWorkspace'
+import { CodegenCapabilityPack } from '../capabilities/codegen/CodegenCapabilityPack'
 
 import { AIProfile } from '../../shared/types/settings'
 import { migrations } from '../../infrastructure/database/migrations'
@@ -210,6 +212,21 @@ export class WorkspaceRuntime {
       this.aiProvider
     )
     archPack.register(capabilityRegistry)
+
+    const generationWorkspace = new GenerationWorkspace(
+      this.artifactRepo!,
+      this.graphService!,
+      workspacePath
+    )
+
+    const codegenPack = new CodegenCapabilityPack(
+      this.artifactEngine!,
+      this.graphService!,
+      this.aiProvider!,
+      generationWorkspace,
+      workspacePath
+    )
+    codegenPack.register(capabilityRegistry)
 
     // AI Generations
     this.aiGenerationService = new AIGenerationService(

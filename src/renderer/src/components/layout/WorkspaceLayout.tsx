@@ -1,92 +1,120 @@
-import React, { ReactNode } from 'react'
-import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
-import { DoppelrandPanel } from '../ui/DoppelrandPanel'
-import { cn } from '../../utils/cn'
+import React, { ReactNode, useRef, useState, useCallback } from 'react'
 
 export interface WorkspaceLayoutProps {
-  leftPanel: ReactNode
   mainPanel: ReactNode
   rightPanel?: ReactNode
   bottomPanel?: ReactNode
 }
 
-const ResizeHandle: React.FC<{ vertical?: boolean }> = ({ vertical }) => (
-  <PanelResizeHandle
-    className={cn(
-      'flex items-center justify-center bg-forge-bg transition-colors hover:bg-forge-amber/20 active:bg-forge-amber/40 group',
-      vertical ? 'h-1 w-full cursor-row-resize' : 'w-1 h-full cursor-col-resize z-10'
-    )}
-  >
-    <div
-      className={cn(
-        'bg-forge-border group-hover:bg-forge-amber transition-colors rounded-full',
-        vertical ? 'w-8 h-[2px]' : 'h-8 w-[2px]'
-      )}
-    />
-  </PanelResizeHandle>
-)
-
 export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
-  leftPanel,
   mainPanel,
   rightPanel,
   bottomPanel
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Horizontal split: center vs right (percentage of total width)
+  const [rightWidth, setRightWidth] = useState(280) // px
+  const isDraggingH = useRef(false)
+
+  // Vertical split: editor vs terminal (percentage of center height)
+  const [bottomHeight, setBottomHeight] = useState(180) // px
+  const isDraggingV = useRef(false)
+
+  const handleHMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingH.current = true
+
+    const onMouseMove = (e: MouseEvent): void => {
+      if (!isDraggingH.current || !containerRef.current) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const newRight = rect.right - e.clientX
+      setRightWidth(Math.max(200, Math.min(500, newRight)))
+    }
+
+    const onMouseUp = (): void => {
+      isDraggingH.current = false
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [])
+
+  const handleVMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingV.current = true
+
+    const onMouseMove = (e: MouseEvent): void => {
+      if (!isDraggingV.current || !containerRef.current) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const newBottom = rect.bottom - e.clientY
+      setBottomHeight(Math.max(80, Math.min(400, newBottom)))
+    }
+
+    const onMouseUp = (): void => {
+      isDraggingV.current = false
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [])
+
   return (
-    <PanelGroup orientation="horizontal" className="w-full h-full">
-      <Panel defaultSize={20} minSize={15} maxSize={30} className="flex flex-col h-full min-w-0">
-        <DoppelrandPanel className="h-full w-full rounded-r-none border-r-0">
-          {leftPanel}
-        </DoppelrandPanel>
-      </Panel>
+    <div ref={containerRef} className="w-full h-full flex gap-1 p-2 bg-forge-bg overflow-hidden">
+      {/* Center Column: Editor + Terminal */}
+      <div className="flex-1 flex flex-col gap-1 min-w-0 h-full">
+        {/* Editor Panel */}
+        <div
+          className="flex-1 min-h-0 bg-forge-panel border border-forge-border rounded-xl flex flex-col overflow-hidden shadow-md"
+          style={bottomPanel ? { flexShrink: 1 } : undefined}
+        >
+          {mainPanel}
+        </div>
 
-      <ResizeHandle />
-
-      <Panel className="flex flex-col h-full min-w-0">
-        {bottomPanel ? (
-          <PanelGroup orientation="vertical">
-            <Panel className="flex flex-col min-h-0">
-              <DoppelrandPanel variant="amber" className="h-full w-full rounded-none border-x-0">
-                {mainPanel}
-              </DoppelrandPanel>
-            </Panel>
-
-            <ResizeHandle vertical />
-            <Panel
-              defaultSize={25}
-              minSize={15}
-              maxSize={50}
-              collapsible
-              className="flex flex-col min-h-0"
+        {/* Vertical Resize Handle */}
+        {bottomPanel && (
+          <>
+            <div
+              className="h-3 w-full flex items-center justify-center cursor-row-resize group shrink-0"
+              onMouseDown={handleVMouseDown}
             >
-              <DoppelrandPanel className="h-full w-full rounded-none border-x-0 border-t-0">
-                {bottomPanel}
-              </DoppelrandPanel>
-            </Panel>
-          </PanelGroup>
-        ) : (
-          <DoppelrandPanel variant="amber" className="h-full w-full rounded-none border-x-0">
-            {mainPanel}
-          </DoppelrandPanel>
-        )}
-      </Panel>
+              <div className="w-10 h-[3px] rounded-full bg-forge-border group-hover:bg-forge-amber/50 group-active:bg-forge-amber transition-colors" />
+            </div>
 
+            {/* Terminal Panel */}
+            <div
+              className="shrink-0 bg-forge-panel border border-forge-border rounded-xl flex flex-col overflow-hidden shadow-md"
+              style={{ height: bottomHeight }}
+            >
+              {bottomPanel}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Horizontal Resize Handle */}
       {rightPanel && (
         <>
-          <ResizeHandle />
-          <Panel
-            defaultSize={20}
-            minSize={15}
-            maxSize={30}
-            collapsible
-            className="flex flex-col h-full min-w-0"
+          <div
+            className="w-3 h-full flex items-center justify-center cursor-col-resize group shrink-0"
+            onMouseDown={handleHMouseDown}
           >
-            <DoppelrandPanel className="h-full w-full rounded-l-none border-l-0">
-              {rightPanel}
-            </DoppelrandPanel>
-          </Panel>
+            <div className="h-10 w-[3px] rounded-full bg-forge-border group-hover:bg-forge-amber/50 group-active:bg-forge-amber transition-colors" />
+          </div>
+
+          {/* Right Panel (AI Chat) */}
+          <div
+            className="shrink-0 h-full bg-forge-panel border border-forge-border rounded-xl flex flex-col overflow-hidden shadow-md"
+            style={{ width: rightWidth }}
+          >
+            {rightPanel}
+          </div>
         </>
       )}
-    </PanelGroup>
+    </div>
   )
 }

@@ -20,13 +20,18 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
       {...props}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-light text-white tracking-tight flex items-center gap-2">
-          <span className="text-forge-amber/70 font-mono text-sm">#</span>
+        <h3 className="text-xl font-medium text-white tracking-tight flex items-center gap-2">
+          <span className="text-forge-amber font-mono text-lg font-bold">#</span>
           {title}
         </h3>
         {action && <div>{action}</div>}
       </div>
-      {description && <p className="text-sm text-forge-text-muted">{description}</p>}
+      {description && (
+        <div className="flex items-center gap-2 mt-1">
+          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+          <p className="text-sm text-forge-text-muted">{description}</p>
+        </div>
+      )}
     </div>
   )
 }

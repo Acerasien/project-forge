@@ -2,19 +2,19 @@
 
 @theme {
   /* Colors */
-  --color-forge-bg: #000000;
-  --color-forge-panel: #0a0a0a;
-  --color-forge-surface: #141414;
-  --color-forge-border: #222222;
-  --color-forge-border-focus: #444444;
+  --color-forge-bg: #09090b;
+  --color-forge-panel: #18181b;
+  --color-forge-surface: #27272a;
+  --color-forge-border: #3f3f46;
+  --color-forge-border-focus: #52525b;
 
   --color-forge-amber: #ffb000;
   --color-forge-amber-hover: #ffc033;
   --color-forge-amber-active: #e69d00;
   --color-forge-amber-dim: rgba(255, 176, 0, 0.15);
 
-  --color-forge-text: #f0f0f0;
-  --color-forge-text-muted: #888888;
+  --color-forge-text: #f4f4f5;
+  --color-forge-text-muted: #a1a1aa;
   --color-forge-error: #ff4444;
   --color-forge-error-dim: rgba(255, 68, 68, 0.15);
 
