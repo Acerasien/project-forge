@@ -38,11 +38,13 @@ export const EditorHost = forwardRef<ToolHandle, EditorHostProps>(
             systemPrompt:
               'You are an AI coding assistant. Generate code to be inserted directly into the document based on the prompt. Provide ONLY the code without markdown formatting or markdown code blocks (e.g. no ```typescript).'
           })
-          .onChunk((text) => {
-            view.dispatch({
-              changes: { from: insertPos, insert: text }
-            })
-            insertPos += text.length
+          .onChunk((event) => {
+            if (event.type === 'text') {
+              view.dispatch({
+                changes: { from: insertPos, insert: event.content }
+              })
+              insertPos += event.content.length
+            }
           })
           .onComplete(() => {
             currentStream.current = null

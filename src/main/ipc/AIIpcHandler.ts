@@ -87,6 +87,7 @@ export function registerAIIpcHandlers(
               conversationId: m.conversationId,
               role: m.role,
               content: m.content,
+              metadata: m.metadata,
               createdAt: m.createdAt.toISOString()
             }))
           }

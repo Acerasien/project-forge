@@ -11,6 +11,8 @@ How Forge runs and behaves at runtime — request lifecycle, data flow, failure 
 |------|-------------|
 | [architecture-diagram.md](architecture-diagram.md) | Runtime component diagram — processes, adapters, and data stores |
 | [data-flow.md](data-flow.md) | 4 critical workflow sequence diagrams (approval, AI generation, task derivation, search) |
+| [agent-orchestration.md](agent-orchestration.md) | The agent execution pipeline, state management, and capability extension points |
+| [capability-packs.md](capability-packs.md) | The organization, integration, and rules for extending the agent with new capabilities |
 | [component-breakdown.md](component-breakdown.md) | All 11 system design sections: API, storage, state, background processes, scalability |
 | [caching-strategy.md](caching-strategy.md) | What is cached, where, for how long, and how it is invalidated |
 | [error-handling.md](error-handling.md) | Failure modes per component and graceful degradation behaviour |

@@ -1,5 +1,5 @@
-import { IInitiativeRepository } from '@domain/repositories/IInitiativeRepository'
-import { Initiative } from '@domain/entities/Initiative'
+import { IInitiativeRepository } from '../../../domain/repositories/IInitiativeRepository'
+import { Initiative } from '../../../domain/entities/Initiative'
 import { KyselyAdapter } from '../KyselyAdapter'
 
 export class InitiativeRepository implements IInitiativeRepository {
@@ -16,7 +16,14 @@ export class InitiativeRepository implements IInitiativeRepository {
     if (!row) return null
 
     // Hydrate back to the domain model
-    return new Initiative(row.id, row.name, new Date(row.created_at as string))
+    return new Initiative(
+      row.id,
+      row.name,
+      row.description,
+      row.status as 'Discovery' | 'InProgress' | 'Released' | 'Archived',
+      new Date(row.created_at as string),
+      new Date(row.updated_at as string)
+    )
   }
 
   public async list(): Promise<Initiative[]> {
@@ -27,7 +34,17 @@ export class InitiativeRepository implements IInitiativeRepository {
       .orderBy('created_at', 'desc')
       .execute()
 
-    return rows.map((row) => new Initiative(row.id, row.name, new Date(row.created_at as string)))
+    return rows.map(
+      (row) =>
+        new Initiative(
+          row.id,
+          row.name,
+          row.description,
+          row.status as 'Discovery' | 'InProgress' | 'Released' | 'Archived',
+          new Date(row.created_at as string),
+          new Date(row.updated_at as string)
+        )
+    )
   }
 
   public async save(initiative: Initiative): Promise<void> {
@@ -39,13 +56,34 @@ export class InitiativeRepository implements IInitiativeRepository {
       .values({
         id: initiative.id,
         name: initiative.name,
-        created_at: initiative.createdAt.toISOString()
+        description: initiative.description,
+        status: initiative.status,
+        created_at: initiative.createdAt.toISOString(),
+        updated_at: initiative.updatedAt.toISOString()
       })
       .onConflict((oc) =>
         oc.column('id').doUpdateSet({
-          name: initiative.name
+          name: initiative.name,
+          description: initiative.description,
+          status: initiative.status,
+          updated_at: new Date().toISOString()
         })
       )
+      .execute()
+  }
+
+  public async updateStatus(
+    id: string,
+    status: 'Discovery' | 'InProgress' | 'Released' | 'Archived'
+  ): Promise<void> {
+    await this.adapter
+      .getKysely()
+      .updateTable('initiatives')
+      .set({
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .where('id', '=', id)
       .execute()
   }
 

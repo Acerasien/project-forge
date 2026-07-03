@@ -4,39 +4,29 @@ import { SectionHeader } from '../components/ui/SectionHeader'
 import { EmptyState } from '../components/ui/States'
 import { Button } from '../components/ui/Button'
 import { WorkspaceLayout } from '../components/layout/WorkspaceLayout'
-import { EditorHost } from '../components/editor/EditorHost'
-import { FlowHost } from '../components/flow/FlowHost'
-import { GraphData } from '../components/flow/types'
+import { WorkspaceHost } from '../components/workspace/WorkspaceHost'
+import { ToolRegistry } from '../tools'
 import { cn } from '../utils/cn'
 import { CommandPalette } from '../components/ui/CommandPalette'
 import { ToolHandle } from '../types/workspace'
 import { useAIStore } from '../store/useAIStore'
+import { useDocumentStore } from '../store/useDocumentStore'
+import { useArtifactStore } from '../store/useArtifactStore'
+import { documentManager } from '../managers/DocumentManager'
 import { v4 as uuidv4 } from 'uuid'
-
-const sampleGraph: GraphData = {
-  nodes: [
-    { id: '1', label: 'Start', position: { x: 250, y: 50 } },
-    { id: '2', label: 'Process Data', position: { x: 100, y: 150 } },
-    { id: '3', label: 'Analyze', position: { x: 400, y: 150 } },
-    { id: '4', label: 'End', position: { x: 250, y: 300 } }
-  ],
-  edges: [
-    { id: 'e1-2', source: '1', target: '2', animated: true },
-    { id: 'e1-3', source: '1', target: '3' },
-    { id: 'e2-4', source: '2', target: '4' },
-    { id: 'e3-4', source: '3', target: '4' }
-  ]
-}
 
 export const Workspace: React.FC = () => {
   const { initiatives, activeInitiativeId } = useInitiativeStore()
   const activeInitiative = initiatives.find((i) => i.id === activeInitiativeId)
 
-  const [docContent, setDocContent] = useState(
-    '// Initialize Forge Engine\nfunction init() {\n  console.log("Forge Engine ready.");\n}\n'
-  )
-  const [graphData, setGraphData] = useState<GraphData>(sampleGraph)
-  const [activeTool, setActiveTool] = useState<'editor' | 'flow'>('editor')
+  const { documents, activeDocumentId } = useDocumentStore()
+  const activeDocument = documents.find((d) => d.id === activeDocumentId) || null
+
+  // Determine tool automatically based on active document, fallback to first tool if forcing
+  const autoTool = activeDocument ? ToolRegistry.getToolForDocument(activeDocument) : null
+  const [forcedToolId, setForcedToolId] = useState<string | null>(null)
+  const activeToolId = forcedToolId || autoTool?.id || ''
+  const [intelligence, setIntelligence] = useState<Record<string, unknown>>({})
 
   const {
     activeConversationId,
@@ -47,12 +37,20 @@ export const Workspace: React.FC = () => {
     loadMessages,
     createConversation,
     appendOptimisticMessage,
-    updateOptimisticMessage
+    updateOptimisticMessage,
+    updateOptimisticMessageMetadata
   } = useAIStore()
 
   const [prompt, setPrompt] = useState('')
   const currentStream = useRef<{ cancel: () => void } | null>(null)
   const generatingMessageId = useRef<string | null>(null)
+
+  // Agent State
+  const [activeWorkflow, setActiveWorkflow] = useState<{
+    id: string
+    plan: Record<string, unknown> | null
+    events: Record<string, unknown>[]
+  } | null>(null)
 
   useEffect(() => {
     if (activeInitiativeId) {
@@ -65,12 +63,37 @@ export const Workspace: React.FC = () => {
           loadMessages(conversations[0].id)
         }
       })
+
+      // Load documents and artifacts for this initiative
+      documentManager.loadDocuments(activeInitiativeId)
+      useArtifactStore.getState().loadArtifacts(activeInitiativeId)
+    } else {
+      documentManager.closeDocument()
     }
   }, [activeInitiativeId, loadConversations, createConversation, loadMessages])
 
+  const { artifacts, updateStatus } = useArtifactStore()
+
+  useEffect(() => {
+    const fetchIntelligence = async (): Promise<void> => {
+      const newIntelligence: Record<string, unknown> = {}
+      for (const artifact of useArtifactStore.getState().artifacts) {
+        try {
+          const res = await window.forge.validation.getLatestIntelligence(artifact.id)
+          if (res.success && res.data) {
+            newIntelligence[artifact.id] = res.data
+          }
+        } catch {
+          // ignore
+        }
+      }
+      setIntelligence(newIntelligence)
+    }
+    fetchIntelligence()
+  }, [artifacts])
+
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
-  const editorRef = useRef<ToolHandle>(null)
-  const flowRef = useRef<ToolHandle>(null)
+  const workspaceHostRef = useRef<ToolHandle>(null)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
@@ -87,20 +110,43 @@ export const Workspace: React.FC = () => {
     if (!activeConversationId || !activeInitiativeId) return
     const options = { conversationId: activeConversationId, initiativeId: activeInitiativeId }
 
-    if (activeTool === 'editor' && editorRef.current) {
-      editorRef.current.executeAICommand(cmdPrompt, options)
-    } else if (activeTool === 'flow' && flowRef.current) {
-      flowRef.current.executeAICommand(cmdPrompt, options)
+    if (workspaceHostRef.current) {
+      workspaceHostRef.current.executeAICommand(cmdPrompt, options)
     }
+  }
+
+  const handleAgentGoal = (goal: string): void => {
+    if (!activeInitiativeId) return
+    setActiveWorkflow({ id: 'pending', plan: null, events: [] })
+
+    window.forge.agent.executeGoal(goal, activeInitiativeId).onEvent((event) => {
+      setActiveWorkflow((prev) => {
+        const id = event.workflowId as string
+        const current =
+          prev?.id === id || prev?.id === 'pending' ? prev : { id, plan: null, events: [] }
+
+        if (event.type === 'plan_created') {
+          current.plan = event.data as Record<string, unknown>
+        }
+        current.id = id
+        current.events = [...current.events, event as unknown as Record<string, unknown>]
+        return { ...current }
+      })
+    })
   }
 
   const handleGenerate = (): void => {
     if (!prompt.trim() || isGenerating || !activeConversationId || !activeInitiativeId) return
     const currentPrompt = prompt
     setPrompt('')
+
+    if (currentPrompt.startsWith('/agent ')) {
+      handleAgentGoal(currentPrompt.slice(7).trim())
+      return
+    }
+
     setGenerating(true)
 
-    // Add optimistic user message
     appendOptimisticMessage({
       id: uuidv4(),
       conversationId: activeConversationId,
@@ -112,7 +158,6 @@ export const Workspace: React.FC = () => {
     const assistantMsgId = uuidv4()
     generatingMessageId.current = assistantMsgId
 
-    // Add optimistic empty assistant message
     appendOptimisticMessage({
       id: assistantMsgId,
       conversationId: activeConversationId,
@@ -129,16 +174,33 @@ export const Workspace: React.FC = () => {
         initiativeId: activeInitiativeId,
         prompt: currentPrompt
       })
-      .onChunk((text): void => {
-        accumulatedContent += text
-        updateOptimisticMessage(assistantMsgId, accumulatedContent)
+      .onChunk((event: Record<string, unknown>): void => {
+        if (event.type === 'text') {
+          accumulatedContent += event.content as string
+          updateOptimisticMessage(assistantMsgId, accumulatedContent)
+        } else if (event.type === 'tool_start') {
+          const currentMetadata =
+            useAIStore.getState().messages.find((m) => m.id === assistantMsgId)?.metadata || {}
+          const toolCalls = (currentMetadata.toolCalls || []) as Record<string, unknown>[]
+          toolCalls.push({ name: event.name, status: 'running' })
+          updateOptimisticMessageMetadata(assistantMsgId, { toolCalls })
+        } else if (event.type === 'tool_end') {
+          const currentMetadata =
+            useAIStore.getState().messages.find((m) => m.id === assistantMsgId)?.metadata || {}
+          const toolCalls = (currentMetadata.toolCalls || []) as Record<string, unknown>[]
+          const lastCall = toolCalls[toolCalls.length - 1]
+          if (lastCall && lastCall.name === event.name) {
+            lastCall.status = 'complete'
+          }
+          updateOptimisticMessageMetadata(assistantMsgId, { toolCalls })
+        }
       })
       .onComplete((): void => {
         setGenerating(false)
         currentStream.current = null
         generatingMessageId.current = null
       })
-      .onError((err): void => {
+      .onError((err: unknown): void => {
         updateOptimisticMessage(assistantMsgId, accumulatedContent + '\n[Error: ' + err + ']')
         setGenerating(false)
         currentStream.current = null
@@ -175,13 +237,156 @@ export const Workspace: React.FC = () => {
     )
   }
 
+  const registeredTools = ToolRegistry.getAll()
+  const activeTool = ToolRegistry.get(activeToolId)
+
+  const handleArtifactApprove = async (e: React.MouseEvent, id: string): Promise<void> => {
+    e.stopPropagation()
+    const res = await updateStatus(id, 'Approved')
+    if (!res.success && res.isGateWarning) {
+      if (confirm(`Warning: ${res.error}\n\nDo you want to override and approve anyway?`)) {
+        await updateStatus(id, 'Approved', true)
+      }
+    } else if (!res.success) {
+      alert(`Error: ${res.error}`)
+    }
+  }
+
+  const handleArtifactRequestReview = async (e: React.MouseEvent, id: string): Promise<void> => {
+    e.stopPropagation()
+    await updateStatus(id, 'NeedsReview')
+  }
+
+  const handleAIReview = async (e: React.MouseEvent, id: string): Promise<void> => {
+    e.stopPropagation()
+    try {
+      const res = await window.forge.validation.reviewArtifact(id)
+      if (res.success && res.data) {
+        setIntelligence((prev) => ({ ...prev, [id]: res.data }))
+      } else if (!res.success) {
+        alert(`AI Review failed: ${res.error.message}`)
+      }
+    } catch (err: unknown) {
+      alert(`AI Review error: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
   const leftPanel = (
-    <div className="h-full flex flex-col">
-      <div className="text-xs font-mono text-forge-text-muted mb-4 border-b border-forge-border pb-2 px-4 mt-4">
-        ARTIFACTS
+    <div className="h-full flex flex-col gap-4">
+      {/* Artifacts Section */}
+      <div className="flex flex-col">
+        <div className="text-xs font-mono text-forge-text-muted mb-2 border-b border-forge-border pb-2 px-4 mt-4">
+          ARTIFACTS (WORKFLOW)
+        </div>
+        <div className="px-4 flex flex-col gap-1">
+          {artifacts.length === 0 && (
+            <div className="text-forge-text-muted opacity-50 text-sm italic">
+              No artifacts found.
+            </div>
+          )}
+          {artifacts.map((artifact) => (
+            <div
+              key={artifact.id}
+              className="group flex flex-col text-sm font-mono truncate px-2 py-1 rounded transition-colors text-forge-text-muted hover:bg-forge-surface/50 hover:text-forge-text"
+            >
+              <div className="flex justify-between items-center w-full">
+                <span>{artifact.title}</span>
+                <span
+                  className={cn(
+                    'text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded',
+                    artifact.status === 'Approved'
+                      ? 'bg-green-500/10 text-green-500'
+                      : artifact.status === 'NeedsReview'
+                        ? 'bg-forge-amber/10 text-forge-amber'
+                        : 'bg-forge-surface text-forge-text-muted'
+                  )}
+                >
+                  {artifact.status}
+                </span>
+              </div>
+
+              {/* Intelligence Display */}
+              {Boolean(intelligence[artifact.id]) && (
+                <div className="flex gap-2 text-[10px] mt-1 items-center">
+                  <span className="text-forge-text-muted">
+                    Comp:{' '}
+                    {String(
+                      (intelligence[artifact.id] as Record<string, unknown>).completenessScore ??
+                        '-'
+                    )}
+                    %
+                  </span>
+                  <span className="text-forge-text-muted">
+                    Conf:{' '}
+                    {String(
+                      (intelligence[artifact.id] as Record<string, unknown>).aiConfidence ?? '-'
+                    )}
+                    %
+                  </span>
+                  {Boolean((intelligence[artifact.id] as Record<string, unknown>).isStale) && (
+                    <span className="text-forge-amber animate-pulse">Stale</span>
+                  )}
+                </div>
+              )}
+
+              <div className="hidden group-hover:flex gap-2 mt-1 flex-wrap">
+                {artifact.status !== 'Approved' && (
+                  <button
+                    onClick={(e) => handleArtifactApprove(e, artifact.id)}
+                    className="text-[10px] text-green-500 hover:underline"
+                  >
+                    Approve
+                  </button>
+                )}
+                {artifact.status === 'Approved' && (
+                  <button
+                    onClick={(e) => handleArtifactRequestReview(e, artifact.id)}
+                    className="text-[10px] text-forge-amber hover:underline"
+                  >
+                    Request Review
+                  </button>
+                )}
+                <button
+                  onClick={(e) => handleAIReview(e, artifact.id)}
+                  className="text-[10px] text-purple-400 hover:underline"
+                >
+                  AI Review
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="flex-1 flex items-center justify-center text-forge-text-muted opacity-50 text-sm">
-        [Tree View]
+
+      {/* Documents Section */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="text-xs font-mono text-forge-text-muted mb-2 border-b border-forge-border pb-2 px-4">
+          DOCUMENTS
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 flex flex-col gap-1">
+          {documents.length === 0 && (
+            <div className="text-forge-text-muted opacity-50 text-sm italic">
+              No documents found.
+            </div>
+          )}
+          {documents.map((doc) => (
+            <button
+              key={doc.id}
+              onClick={() => {
+                setForcedToolId(null)
+                documentManager.openDocument(doc.id)
+              }}
+              className={cn(
+                'text-left text-sm font-mono truncate px-2 py-1 rounded transition-colors',
+                activeDocumentId === doc.id
+                  ? 'bg-forge-amber/20 text-forge-amber'
+                  : 'text-forge-text-muted hover:bg-forge-surface/50 hover:text-forge-text'
+              )}
+            >
+              {doc.name}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -190,48 +395,40 @@ export const Workspace: React.FC = () => {
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between border-b border-forge-border pb-2 px-4 mt-4">
         <div className="flex gap-4">
-          <button
-            onClick={() => setActiveTool('editor')}
-            className={cn(
-              'text-xs font-mono transition-colors focus:outline-none',
-              activeTool === 'editor'
-                ? 'text-forge-amber'
-                : 'text-forge-text-muted hover:text-forge-text'
-            )}
-          >
-            CODE
-          </button>
-          <button
-            onClick={() => setActiveTool('flow')}
-            className={cn(
-              'text-xs font-mono transition-colors focus:outline-none',
-              activeTool === 'flow'
-                ? 'text-forge-amber'
-                : 'text-forge-text-muted hover:text-forge-text'
-            )}
-          >
-            FLOW
-          </button>
+          {registeredTools.map((tool) => (
+            <button
+              key={tool.id}
+              onClick={() => setForcedToolId(tool.id)}
+              className={cn(
+                'text-xs font-mono transition-colors focus:outline-none',
+                activeToolId === tool.id
+                  ? 'text-forge-amber'
+                  : 'text-forge-text-muted hover:text-forge-text'
+              )}
+            >
+              {tool.displayName}
+            </button>
+          ))}
         </div>
         <div className="text-xs font-mono text-forge-text-muted opacity-50 uppercase tracking-widest">
-          {activeTool === 'editor' ? 'Editor_Surface' : 'Graph_Surface'}
+          {activeTool ? `${activeTool.displayName}_SURFACE` : 'NO_TOOL_SELECTED'}
         </div>
       </div>
       <div className="flex-1 overflow-hidden relative">
-        {activeTool === 'editor' ? (
-          <EditorHost
-            ref={editorRef}
-            key={`${activeInitiative.id}-editor`}
-            initialDoc={docContent}
-            onChange={setDocContent}
+        {activeDocument ? (
+          <WorkspaceHost
+            ref={workspaceHostRef}
+            activeToolId={activeToolId}
+            context={{
+              initiativeId: activeInitiative.id,
+              conversationId: activeConversationId,
+              activeDocument
+            }}
           />
         ) : (
-          <FlowHost
-            ref={flowRef}
-            key={`${activeInitiative.id}-flow`}
-            graphData={graphData}
-            onChange={setGraphData}
-          />
+          <div className="h-full flex items-center justify-center text-forge-text-muted opacity-50 font-mono text-sm">
+            Select a document to begin.
+          </div>
         )}
       </div>
     </div>
@@ -254,27 +451,120 @@ export const Workspace: React.FC = () => {
       </div>
       <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
         <div className="flex-1 overflow-y-auto flex flex-col gap-4 text-sm font-mono text-forge-text-muted">
-          {messages.length === 0 ? (
+          {activeWorkflow && (
+            <div className="bg-forge-amber/5 border border-forge-amber/30 rounded p-3 text-xs mb-4">
+              <div className="font-bold text-forge-amber uppercase tracking-widest mb-2 border-b border-forge-amber/20 pb-1">
+                Engineering Agent Workflow
+              </div>
+              {!activeWorkflow.plan ? (
+                <div className="animate-pulse">Building context and planning...</div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="text-forge-text-muted">
+                    Goal: {String(activeWorkflow.plan.goal)}
+                  </div>
+                  <div className="flex flex-col gap-1 mt-2">
+                    {Array.isArray(activeWorkflow.plan.steps) &&
+                      activeWorkflow.plan.steps.map(
+                        (step: Record<string, unknown>, idx: number) => {
+                          const stepEvents = activeWorkflow.events.filter(
+                            (evt) =>
+                              evt.data && (evt.data as Record<string, unknown>).stepId === step.id
+                          )
+                          const lastEvent = stepEvents[stepEvents.length - 1]
+                          const isRunning = lastEvent?.type === 'step_started'
+                          const isCompleted = lastEvent?.type === 'step_completed'
+                          const isFailed = lastEvent?.type === 'step_failed'
+
+                          return (
+                            <div
+                              key={idx}
+                              className={cn(
+                                'flex items-center gap-2 p-1 rounded',
+                                isRunning
+                                  ? 'bg-forge-amber/10 text-forge-amber'
+                                  : isCompleted
+                                    ? 'text-green-500/70'
+                                    : isFailed
+                                      ? 'text-forge-error'
+                                      : 'opacity-50'
+                              )}
+                            >
+                              <span>
+                                {isRunning ? '⟳' : isCompleted ? '✓' : isFailed ? '✗' : '·'}
+                              </span>
+                              <span>{String(step.capabilityName)}</span>
+                              <span className="opacity-50 ml-2">- {String(step.description)}</span>
+                            </div>
+                          )
+                        }
+                      )}
+                  </div>
+                  {activeWorkflow.events.some((e) => e.type === 'completed') && (
+                    <div className="mt-2 text-green-500 font-bold uppercase tracking-widest">
+                      Workflow Completed
+                    </div>
+                  )}
+                  {activeWorkflow.events.some(
+                    (e) => e.type === 'error' || e.type === 'step_failed'
+                  ) && (
+                    <div className="mt-2 text-forge-error font-bold uppercase tracking-widest">
+                      Workflow Failed
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {messages.length === 0 && !activeWorkflow ? (
             <div className="opacity-50">Standby for generation...</div>
           ) : (
             messages.map((msg) => (
               <div
                 key={msg.id}
-                className={cn('flex flex-col', msg.role === 'user' ? 'items-end' : 'items-start')}
+                className={cn(
+                  'flex flex-col',
+                  msg.role === 'user' ? 'items-end' : 'items-start',
+                  msg.role === 'tool' ? 'hidden' : ''
+                )}
               >
                 <div className="text-[10px] opacity-50 uppercase tracking-widest mb-1">
                   {msg.role}
                 </div>
-                <div
-                  className={cn(
-                    'px-3 py-2 rounded max-w-[80%] whitespace-pre-wrap',
-                    msg.role === 'user'
-                      ? 'bg-forge-amber/10 border border-forge-amber/30 text-forge-amber'
-                      : 'bg-forge-surface border border-forge-border'
+
+                {!!msg.metadata?.toolCalls &&
+                  Array.isArray(msg.metadata.toolCalls) &&
+                  msg.metadata.toolCalls.length > 0 && (
+                    <div className="flex flex-col gap-1 mb-2">
+                      {(msg.metadata.toolCalls as Record<string, unknown>[]).map(
+                        (tc: Record<string, unknown>, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 text-xs font-mono text-forge-amber/70 bg-forge-amber/5 px-2 py-1 rounded border border-forge-amber/20"
+                          >
+                            <span className={tc.status === 'running' ? 'animate-pulse' : ''}>
+                              {tc.status === 'running' ? '⟳' : '✓'}
+                            </span>
+                            <span>{String(tc.name)}</span>
+                          </div>
+                        )
+                      )}
+                    </div>
                   )}
-                >
-                  {msg.content}
-                </div>
+
+                {msg.content && (
+                  <div
+                    className={cn(
+                      'px-3 py-2 rounded max-w-[80%] whitespace-pre-wrap',
+                      msg.role === 'user'
+                        ? 'bg-forge-amber/10 border border-forge-amber/30 text-forge-amber'
+                        : 'bg-forge-surface border border-forge-border'
+                    )}
+                  >
+                    {msg.content}
+                  </div>
+                )}
               </div>
             ))
           )}

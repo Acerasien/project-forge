@@ -1,6 +1,6 @@
-import { IConversationRepository } from '@domain/repositories/IConversationRepository'
-import { Conversation } from '@domain/ai/Conversation'
-import { Message, MessageRole } from '@domain/ai/Message'
+import { IConversationRepository } from '../../../domain/repositories/IConversationRepository'
+import { Conversation } from '../../../domain/ai/Conversation'
+import { Message, MessageRole } from '../../../domain/ai/Message'
 import { KyselyAdapter } from '../KyselyAdapter'
 
 export class ConversationRepository implements IConversationRepository {
@@ -49,16 +49,24 @@ export class ConversationRepository implements IConversationRepository {
       .orderBy('created_at', 'asc')
       .execute()
 
-    const messages = msgRows.map(
-      (msgRow) =>
-        new Message(
-          msgRow.id,
-          msgRow.conversation_id,
-          msgRow.role as MessageRole,
-          msgRow.content,
-          new Date(msgRow.created_at as string)
-        )
-    )
+    const messages = msgRows.map((msgRow) => {
+      let metadata: Record<string, unknown> | undefined
+      if (msgRow.metadata) {
+        try {
+          metadata = JSON.parse(msgRow.metadata)
+        } catch {
+          // Ignore invalid JSON
+        }
+      }
+      return new Message(
+        msgRow.id,
+        msgRow.conversation_id,
+        msgRow.role as MessageRole,
+        msgRow.content,
+        new Date(msgRow.created_at as string),
+        metadata
+      )
+    })
 
     return { conversation, messages }
   }
@@ -96,6 +104,7 @@ export class ConversationRepository implements IConversationRepository {
           conversation_id: message.conversationId,
           role: message.role,
           content: message.content,
+          metadata: message.metadata ? JSON.stringify(message.metadata) : null,
           created_at: message.createdAt.toISOString()
         })
         .execute()

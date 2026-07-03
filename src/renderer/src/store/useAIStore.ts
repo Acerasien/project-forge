@@ -14,6 +14,7 @@ interface AIState {
   createConversation: (initiativeId: string, title?: string) => Promise<string | null>
   appendOptimisticMessage: (message: MessageDTO) => void
   updateOptimisticMessage: (id: string, content: string) => void
+  updateOptimisticMessageMetadata: (id: string, metadata: Record<string, unknown>) => void
   setGenerating: (generating: boolean) => void
 }
 
@@ -60,6 +61,14 @@ export const useAIStore = create<AIState>((set) => ({
   updateOptimisticMessage: (id, content) => {
     set((state) => ({
       messages: state.messages.map((msg) => (msg.id === id ? { ...msg, content } : msg))
+    }))
+  },
+
+  updateOptimisticMessageMetadata: (id, metadata) => {
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg.id === id ? { ...msg, metadata: { ...(msg.metadata || {}), ...metadata } } : msg
+      )
     }))
   },
 

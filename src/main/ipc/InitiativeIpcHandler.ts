@@ -29,7 +29,10 @@ export class InitiativeIpcHandler {
             data: {
               id: initiative.id,
               name: initiative.name,
-              createdAt: initiative.createdAt.toISOString()
+              description: initiative.description,
+              status: initiative.status,
+              createdAt: initiative.createdAt.toISOString(),
+              updatedAt: initiative.updatedAt.toISOString()
             }
           }
         } catch (error) {
@@ -51,7 +54,10 @@ export class InitiativeIpcHandler {
             data: {
               id: initiative.id,
               name: initiative.name,
-              createdAt: initiative.createdAt.toISOString()
+              description: initiative.description,
+              status: initiative.status,
+              createdAt: initiative.createdAt.toISOString(),
+              updatedAt: initiative.updatedAt.toISOString()
             }
           }
         } catch (error) {
@@ -65,10 +71,13 @@ export class InitiativeIpcHandler {
         const initiatives = await this.initiativeService.listInitiatives()
         return {
           success: true,
-          data: initiatives.map((init) => ({
-            id: init.id,
-            name: init.name,
-            createdAt: init.createdAt.toISOString()
+          data: initiatives.map((initiative) => ({
+            id: initiative.id,
+            name: initiative.name,
+            description: initiative.description,
+            status: initiative.status,
+            createdAt: initiative.createdAt.toISOString(),
+            updatedAt: initiative.updatedAt.toISOString()
           }))
         }
       } catch (error) {
@@ -86,7 +95,10 @@ export class InitiativeIpcHandler {
             data: {
               id: initiative.id,
               name: initiative.name,
-              createdAt: initiative.createdAt.toISOString()
+              description: initiative.description,
+              status: initiative.status,
+              createdAt: initiative.createdAt.toISOString(),
+              updatedAt: initiative.updatedAt.toISOString()
             }
           }
         } catch (error) {

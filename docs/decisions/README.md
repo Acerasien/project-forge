@@ -23,6 +23,10 @@ All major engineering decisions for Forge are recorded here. ADR numbers are seq
 | [ADR-010](ADR-010-configurable-workspace.md) | User-Configurable Workspace Directory + Worker Thread Export | ✅ Accepted | 2026-07-02 |
 | [ADR-011](ADR-011-local-ai-providers.md) | Local AI Provider Support — Ollama + LM Studio | ✅ Accepted | 2026-07-02 |
 | [ADR-012](ADR-012-kysely-query-builder.md) | Kysely as Query Builder within LocalSQLiteAdapter | ✅ Accepted | 2026-07-02 |
+| [ADR-013](ADR-013-agent-orchestration-layer.md) | Agent Orchestration Layer | ✅ Accepted | 2026-07-03 |
+| [ADR-014](ADR-014-capability-packs.md) | Organizing Features into Capability Packs | ✅ Accepted | 2026-07-03 |
+| [ADR-015](ADR-015-artifact-provenance-and-validation.md) | Artifact Provenance and Validation Philosophy | ✅ Accepted | 2026-07-03 |
+| [ADR-016](ADR-016-capability-contracts-and-domain-gates.md) | Capability Execution Contracts and Domain-Enforced Approval Gates | ✅ Accepted | 2026-07-03 |
 
 ---
 

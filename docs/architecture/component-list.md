@@ -23,6 +23,7 @@ flowchart TD
         AE[ArtifactEngine]
         WE[WorkflowEngine]
         GS[GraphService]
+        EA[EngineeringAgent]
         AI_O[AIOrchestrator]
         EX[ExportService]
         IH[IntegrationHub]
@@ -46,8 +47,8 @@ flowchart TD
     end
 
     UI <--> IPC_R
-    IPC_R <--> IM & AE & WE & GS & AI_O & EX & IH & SI & SM
-    IM & AE & WE & GS & AI_O --> ENTS & DS & EVT & RULES
+    IPC_R <--> IM & AE & WE & GS & EA & AI_O & EX & IH & SI & SM
+    IM & AE & WE & GS & EA & AI_O --> ENTS & DS & EVT & RULES
     IM & AE --> STO
     AI_O --> AI_A
     IH --> GH_A
@@ -75,6 +76,8 @@ flowchart TD
 | **ArtifactEngine** | Manage artifact content, status transitions (Draft → Approved → NeedsReview), and artifact-level history. |
 | **WorkflowEngine** | Enforce artifact dependency order, trigger approval gate warnings, propagate `NeedsReview` cascades when upstream artifacts are edited after approval. |
 | **GraphService** | Manage the engineering graph — add, remove, and query typed directed relationships between artifacts. Enforces DAG invariant (no cycles). |
+| **EngineeringAgent** | Orchestrates long-running goals by coordinating `ContextBuilder`, `PlanningEngine`, and `WorkflowExecutor`. Yields reactive event streams. |
+| **Capability Packs** | `RequirementsCapabilityPack` and `ArchitectureCapabilityPack`. Cohesive groups of capabilities that define engineering disciplines and produce `CapabilityResult<T>` structures. |
 | **AIOrchestrator** | Route AI requests to the configured provider adapter, capture AI Sessions, attach generated drafts to artifacts for review. |
 | **ExportService** | Produce structured Markdown exports of artifacts or full Initiatives; manage backup/restore of the full data directory. |
 | **IntegrationHub** | Isolated, optional module for all external push integrations. GitHub Issues (v1). New integrations are added here without touching other components. |
@@ -85,7 +88,7 @@ flowchart TD
 
 | Component | Responsibility |
 |-----------|---------------|
-| **Domain Entities** | The core objects: Initiative, Artifact, ADR, Task, AISession, ArtifactRelationship. Contain business rules and invariants. |
+| **Domain Entities** | The core objects: Initiative, Artifact, ADR, Task, AISession, ArtifactRelationship, ExecutionPlan, ExecutionSession. Contain business rules and invariants. |
 | **Domain Services** | Logic that spans multiple entities: graph invariant checking, dependency resolution, downstream cascade calculation. |
 | **Domain Events** | Immutable records of things that happened: `ArtifactApproved`, `ADRAccepted`, `DependencyGateWarningTriggered`, etc. |
 | **Business Rules** | Explicit invariants: ADR content immutability after Accepted, no orphan tasks, NeedsReview propagation, no duplicate ADR numbers. |

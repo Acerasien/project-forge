@@ -14,7 +14,8 @@ See [../decisions/ADR-002-clean-architecture.md](../decisions/ADR-002-clean-arch
 | Entity | Aggregate Root? | Key Attributes | Key Invariants |
 |--------|---------------|---------------|----------------|
 | **Initiative** | ✅ Yes | id, name, description, status, createdAt, updatedAt | Cannot be hard-deleted if any artifact is Approved (requires explicit double-confirmation) |
-| **Artifact** | No (child of Initiative) | id, initiativeId, type, content, status, version, createdAt, updatedAt | Status transitions: Draft → Approved → NeedsReview (on upstream edit). Editing Approved artifact cascades NeedsReview downstream. |
+| **Artifact** | No (child of Initiative) | id, initiativeId, type, content, status, version, generatedByCapabilityId, generationSessionId, createdAt, updatedAt | Status transitions: Draft → Approved → NeedsReview (on upstream edit). Editing Approved artifact cascades NeedsReview downstream. Provenance is immutable history. |
+| **Finding** | No (child of Artifact) | id, artifactId, severity, category, message, recommendation, capabilityId, createdAt | Findings are immutable evaluation results produced by validation capabilities. They describe issues, recommendations, or observations without modifying the evaluated artifacts. |
 | **ADR** | No (child of Initiative) | id, initiativeId, sequentialNumber, title, status, context, decision, consequences, alternatives, supersededById | Content is immutable once status = Accepted. sequentialNumber never reused within an Initiative. |
 | **Task** | No (child of Initiative) | id, initiativeId, title, description, status, priority, requirementId (required), systemDesignRef (optional), githubIssueNumber | Must be linked to at least one Requirement — no orphan tasks. |
 | **AISession** | No (child of Initiative) | id, initiativeId, artifactId, name, prompt, response, acceptedContent, createdAt | Read-only after creation. Cannot be deleted if linked artifact is Approved (only archivable). |
@@ -26,13 +27,52 @@ See [../decisions/ADR-002-clean-architecture.md](../decisions/ADR-002-clean-arch
 
 | Value Object | Values | Notes |
 |-------------|--------|-------|
-| **ArtifactType** | Vision, Requirements, Architecture, ADR, SystemDesign, Task, AISession | Immutable after artifact creation |
+| **ArtifactType** | Vision, Requirements, Architecture, SystemDesign, UserStories, ImplementationPlan, ADR, Task, AISession | Immutable after artifact creation |
 | **ArtifactStatus** | Draft, Approved, NeedsReview | Drives gate logic in WorkflowEngine |
 | **ADRStatus** | Proposed, Accepted, Deprecated, Superseded | Only status changes allowed after Accepted |
 | **TaskStatus** | Todo, InProgress, Done, Blocked | No business invariants — user-controlled |
 | **InitiativeStatus** | Discovery, InProgress, Released | Derived from artifact states — never manually set |
 | **MoSCoWPriority** | MustHave, ShouldHave, CouldHave, WontHave | Applied to Requirements artifacts |
 | **RelationshipType** | DerivedFrom, InformedBy, DecidedBy, Implements, Generated, SupersededBy | Typed edges in the engineering graph |
+
+---
+
+## Execution Contracts
+
+### CapabilityResult<T>
+
+**Purpose:** Standard execution boundary between capabilities and the EngineeringAgent orchestration layer.
+
+Contains:
+- `createdArtifacts: Artifact[]`
+- `updatedArtifacts: Artifact[]`
+- `graphEdgesCreated: ArtifactRelationship[]`
+- `findings: Finding[]`
+- `warnings: string[]`
+- `executionMetadata: Record<string, unknown>`
+
+By acting as the singular return type, it removes workflow implementation details from the orchestration layer.
+
+---
+
+## Engineering Execution Model
+
+This flow demonstrates the central execution pattern of Forge for every engineering discipline (Capability Pack).
+
+```mermaid
+flowchart TD
+    A[Approved Artifacts] -->|Read| C[Capability]
+    C -->|Executes & Evaluates| CR[CapabilityResult]
+    CR -->|created/updated| AE[Artifact Engine]
+    CR -->|edges| GS[Graph Service]
+    AE -->|Saves| PA[Persisted Artifacts]
+    GS -->|Saves| PA
+```
+
+1. **Approved Artifacts** serve as the strict inputs to the workflow.
+2. The **Capability** performs a deterministic transformation, enforcing domain-layer approval gates (e.g. failing if parent artifacts aren't Approved).
+3. The Capability yields a **CapabilityResult**, separating the evaluation from the side effects.
+4. The orchestration layer drives the **Artifact Engine** and **Graph Service** to record the changes.
 
 ---
 
@@ -75,19 +115,24 @@ flowchart TD
     R[Requirements\nDraft → Approved]
     A[Architecture\nDraft → Approved]
     SD[System Design\nDraft → Approved]
+    US[User Stories\nDerived from Requirements]
+    IP[Implementation Plan\nDerived from Requirements/Arch]
     ADR[ADRs\nProposed → Accepted]
     T[Tasks\nTodo → Done]
     AI[AI Sessions\nRead-only]
 
     V -->|enables| R
     R -->|enables| A
+    R -->|derivedFrom| US
+    R -->|derivedFrom| IP
+    A -->|informedBy| IP
     R -->|enables| T
     A -->|enables| SD
     A -->|informs| ADR
     R -->|informs| ADR
     SD -->|informs| ADR
     SD -->|enables| T
-    AI -.->|linked to| V & R & A & SD & ADR & T
+    AI -.->|linked to| V & R & A & SD & US & IP & ADR & T
 ```
 
 **Gate semantics:** An arrow means the source *should normally* be Approved before the target is worked on. All gates are warning + confirmation-override — never a silent hard block.

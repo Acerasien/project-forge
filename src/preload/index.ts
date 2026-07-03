@@ -1,8 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { IForgeAPI, GenerationSubscription } from '../shared/types/ipc'
+import {
+  IForgeAPI,
+  GenerationSubscription,
+  GenerationEvent,
+  AgentSubscription
+} from '../shared/types/ipc'
 import { v4 as uuidv4 } from 'uuid'
 import type { GenerationRequest } from '../domain/ai/GenerationRequest'
+import type { AgentEvent } from '../domain/ai/IAgent'
 
 // Custom APIs for renderer
 const api = {}
@@ -15,6 +21,27 @@ const forgeAPI: IForgeAPI = {
     rename: (id: string, newName: string) => ipcRenderer.invoke('initiatives:rename', id, newName),
     delete: (id: string) => ipcRenderer.invoke('initiatives:delete', id)
   },
+  documents: {
+    create: (
+      initiativeId: string,
+      name: string,
+      extension: string,
+      content: string,
+      preferredToolId?: string | null
+    ) =>
+      ipcRenderer.invoke(
+        'documents:create',
+        initiativeId,
+        name,
+        extension,
+        content,
+        preferredToolId
+      ),
+    get: (id: string) => ipcRenderer.invoke('documents:get', id),
+    list: (initiativeId: string) => ipcRenderer.invoke('documents:list', initiativeId),
+    update: (id: string, content: string) => ipcRenderer.invoke('documents:update', id, content),
+    delete: (id: string) => ipcRenderer.invoke('documents:delete', id)
+  },
   ai: {
     createConversation: (initiativeId: string, title?: string) =>
       ipcRenderer.invoke('ai:createConversation', initiativeId, title),
@@ -25,12 +52,12 @@ const forgeAPI: IForgeAPI = {
       const id = uuidv4()
       ipcRenderer.invoke('ai:generate', id, request)
 
-      let onChunkCallback: ((text: string) => void) | undefined
+      let onChunkCallback: ((event: GenerationEvent) => void) | undefined
       let onCompleteCallback: (() => void) | undefined
       let onErrorCallback: ((error: string) => void) | undefined
 
-      const chunkHandler = (_event: unknown, text: string): void => {
-        onChunkCallback?.(text)
+      const chunkHandler = (_event: unknown, payload: GenerationEvent): void => {
+        onChunkCallback?.(payload)
       }
       const endHandler = (): void => {
         onCompleteCallback?.()
@@ -52,7 +79,7 @@ const forgeAPI: IForgeAPI = {
       ipcRenderer.on(`ai:stream:error:${id}`, errorHandler)
 
       const subscription: GenerationSubscription = {
-        onChunk: (cb: (text: string) => void) => {
+        onChunk: (cb: (event: GenerationEvent) => void) => {
           onChunkCallback = cb
           return subscription
         },
@@ -77,6 +104,48 @@ const forgeAPI: IForgeAPI = {
     getStatus: () => ipcRenderer.invoke('system:getStatus'),
     revealDatabase: () => ipcRenderer.invoke('system:revealDatabase'),
     resetDatabase: () => ipcRenderer.invoke('system:resetDatabase')
+  },
+  artifacts: {
+    list: (initiativeId: string) => ipcRenderer.invoke('artifacts:listByInitiative', initiativeId),
+    get: (id: string) => ipcRenderer.invoke('artifacts:get', id),
+    updateContent: (id: string, content: string) =>
+      ipcRenderer.invoke('artifacts:updateContent', id, content),
+    updateStatus: (id: string, status: string, bypassGates?: boolean) =>
+      ipcRenderer.invoke('artifacts:updateStatus', id, status, bypassGates)
+  },
+  graph: {
+    getInitiativeGraph: (initiativeId: string) =>
+      ipcRenderer.invoke('graph:getInitiativeGraph', initiativeId),
+    createRelationship: (sourceId: string, targetId: string, type: string) =>
+      ipcRenderer.invoke('graph:createRelationship', sourceId, targetId, type)
+  },
+  validation: {
+    reviewArtifact: (artifactId: string) =>
+      ipcRenderer.invoke('validation:reviewArtifact', artifactId),
+    getLatestIntelligence: (artifactId: string) =>
+      ipcRenderer.invoke('validation:getLatestIntelligence', artifactId)
+  },
+  agent: {
+    executeGoal: (goal: string, initiativeId: string): AgentSubscription => {
+      ipcRenderer.invoke('agent:executeGoal', { goal, initiativeId })
+
+      let onEventCallback: ((event: AgentEvent) => void) | undefined
+
+      const eventHandler = (_event: unknown, payload: AgentEvent): void => {
+        onEventCallback?.(payload)
+      }
+
+      ipcRenderer.on('agent:event', eventHandler)
+
+      const subscription: AgentSubscription = {
+        onEvent: (cb: (event: AgentEvent) => void) => {
+          onEventCallback = cb
+          return subscription
+        }
+      }
+
+      return subscription
+    }
   }
 }
 

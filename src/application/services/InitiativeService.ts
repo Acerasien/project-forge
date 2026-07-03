@@ -1,14 +1,34 @@
-import { IInitiativeRepository } from '@domain/repositories/IInitiativeRepository'
-import { Initiative } from '@domain/entities/Initiative'
+import { IInitiativeRepository } from '../../domain/repositories/IInitiativeRepository'
+import { Initiative } from '../../domain/entities/Initiative'
+import { ArtifactEngine } from './ArtifactEngine'
 import { randomUUID } from 'crypto'
 
 export class InitiativeService {
-  constructor(private readonly repository: IInitiativeRepository) {}
+  constructor(
+    private readonly repository: IInitiativeRepository,
+    private readonly artifactEngine?: ArtifactEngine
+  ) {}
 
-  public async createInitiative(name: string): Promise<Initiative> {
+  public async createInitiative(name: string, description?: string): Promise<Initiative> {
     const id = randomUUID()
-    const initiative = new Initiative(id, name, new Date())
+    const initiative = new Initiative(
+      id,
+      name,
+      description || null,
+      'Discovery',
+      new Date(),
+      new Date()
+    )
     await this.repository.save(initiative)
+
+    // Scaffold core artifacts
+    if (this.artifactEngine) {
+      await this.artifactEngine.createArtifact(id, 'Vision', 'Vision')
+      await this.artifactEngine.createArtifact(id, 'Requirements', 'Requirements')
+      await this.artifactEngine.createArtifact(id, 'Architecture', 'Architecture')
+      await this.artifactEngine.createArtifact(id, 'SystemDesign', 'System Design')
+    }
+
     return initiative
   }
 
