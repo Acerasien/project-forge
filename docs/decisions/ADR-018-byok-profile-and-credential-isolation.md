@@ -12,6 +12,7 @@
 Forge is designed as a local-first, developer-native desktop engineering tool rather than a SaaS/cloud platform. Consequently, users are expected to use their own AI provider accounts (e.g., Google Gemini, OpenAI, Ollama, LM Studio) by supplying their own API keys or local endpoint credentials.
 
 Currently:
+
 - API keys are stored directly in plaintext within `settings.json` under the user's home folder config directory.
 - This represents a security vulnerability if the configuration files are copied, checked into source control, or backup-synced across environments.
 - API keys are global, meaning every project/Initiative uses the exact same active AI profile.
@@ -46,7 +47,7 @@ We will implement the following changes in the configuration and credential flow
        exists(secretId: string): Promise<boolean>
      }
      ```
-   - This generic interface isolates *any* secret type (API keys, OAuth tokens, personal access tokens) instead of being tied specifically to AI credentials.
+   - This generic interface isolates _any_ secret type (API keys, OAuth tokens, personal access tokens) instead of being tied specifically to AI credentials.
    - The `AIProfile` metadata will store a `credentialId` key pointing to this store, decoupling the settings profile entirely from secret storage logic and facilitating modular testing.
    - Develop modular implementations (e.g., `OSKeychainStoreAdapter`, `ElectronSafeStorageFallback`) that implement this interface.
 

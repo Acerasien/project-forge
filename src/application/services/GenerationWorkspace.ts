@@ -13,7 +13,9 @@ export class GenerationWorkspace {
     private readonly workspacePath: string
   ) {}
 
-  async execute(plan: GenerationPlan): Promise<{ manifestPath: string; filesGeneratedCount: number }> {
+  async execute(
+    plan: GenerationPlan
+  ): Promise<{ manifestPath: string; filesGeneratedCount: number }> {
     const outputDir = join(this.workspacePath, 'generated')
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true })
@@ -29,7 +31,7 @@ export class GenerationWorkspace {
     for (const file of plan.virtualFiles) {
       const absolutePath = join(outputDir, file.path)
       const parentDir = dirname(absolutePath)
-      
+
       if (!fs.existsSync(parentDir)) {
         fs.mkdirSync(parentDir, { recursive: true })
       }
@@ -58,7 +60,11 @@ export class GenerationWorkspace {
       if (file.derivedFromArtifactId) {
         const relationType = file.type === 'schema' ? 'DefinesSchema' : 'ImplementsComponent'
         try {
-          await this.graphService.createRelationship(file.derivedFromArtifactId, artifactId, relationType)
+          await this.graphService.createRelationship(
+            file.derivedFromArtifactId,
+            artifactId,
+            relationType
+          )
         } catch (err) {
           console.error(`Failed to register graph relationship for ${file.path}:`, err)
         }
@@ -88,11 +94,11 @@ export class GenerationWorkspace {
     }
   }
 
-  getManifest(): any | null {
+  getManifest(): Record<string, unknown> | null {
     const manifestPath = join(this.workspacePath, 'generated', '.forge-manifest.json')
     if (!fs.existsSync(manifestPath)) return null
     try {
-      return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+      return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as Record<string, unknown>
     } catch {
       return null
     }

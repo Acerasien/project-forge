@@ -1,6 +1,14 @@
 import React, { useState } from 'react'
 import { useInitiativeStore } from '../store/useInitiativeStore'
-import { FolderGit2, Plus, LayoutDashboard, Settings as SettingsIcon, Link2, ChevronDown, FileText } from 'lucide-react'
+import {
+  FolderGit2,
+  Plus,
+  LayoutDashboard,
+  Settings as SettingsIcon,
+  Link2,
+  ChevronDown,
+  FileText
+} from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { InitiativeCreateModal } from './InitiativeCreateModal'
 import { cn } from '../utils/cn'
@@ -13,7 +21,7 @@ export const Sidebar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const location = useLocation()
   const isWorkspaceRoute = location.pathname === '/workspace'
-  
+
   const { documents, activeDocumentId } = useDocumentStore()
   const { artifacts } = useArtifactStore()
 
@@ -189,7 +197,9 @@ export const Sidebar: React.FC = () => {
                 AP
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-sm font-medium text-forge-text group-hover:text-white transition-colors">Alex Parker</span>
+                <span className="text-sm font-medium text-forge-text group-hover:text-white transition-colors">
+                  Alex Parker
+                </span>
                 <span className="text-xs text-forge-text-muted">alex@example.com</span>
               </div>
             </div>

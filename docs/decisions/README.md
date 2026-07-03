@@ -28,7 +28,7 @@ All major engineering decisions for Forge are recorded here. ADR numbers are seq
 | [ADR-015](ADR-015-artifact-provenance-and-validation.md)         | Artifact Provenance and Validation Philosophy                     | ✅ Accepted | 2026-07-03 |
 | [ADR-016](ADR-016-capability-contracts-and-domain-gates.md)      | Capability Execution Contracts and Domain-Enforced Approval Gates | ✅ Accepted | 2026-07-03 |
 | [ADR-017](ADR-017-workspace-runtime-and-onboarding-lifecycle.md) | Workspace Lifecycle Runtime and Configuration Onboarding          | ✅ Accepted | 2026-07-03 |
-| [ADR-018](ADR-018-byok-profile-and-credential-isolation.md)       | BYOK Profile Registry and OS Credential Store Isolation            | ✅ Accepted | 2026-07-03 |
+| [ADR-018](ADR-018-byok-profile-and-credential-isolation.md)      | BYOK Profile Registry and OS Credential Store Isolation           | ✅ Accepted | 2026-07-03 |
 
 ---
 

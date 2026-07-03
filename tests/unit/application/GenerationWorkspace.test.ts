@@ -105,6 +105,8 @@ describe('GenerationWorkspace & Codegen Capabilities', () => {
     expect(result.findings).toBeDefined()
     expect(result.findings?.length).toBe(1)
     expect(result.findings?.[0].category).toBe('Completeness')
-    expect(result.findings?.[0].message).toContain('No generated database schema or code implementations')
+    expect(result.findings?.[0].message).toContain(
+      'No generated database schema or code implementations'
+    )
   })
 })

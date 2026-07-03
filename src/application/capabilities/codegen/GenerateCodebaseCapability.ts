@@ -8,7 +8,8 @@ import { GenerationPlan, VirtualFile } from '../../../domain/codegen/GenerationP
 
 export class GenerateCodebaseCapability implements ICapability {
   name = 'generate_codebase'
-  description = 'Scaffolds physical codebase directory structures and TypeScript boilerplate files from architecture and schemas.'
+  description =
+    'Scaffolds physical codebase directory structures and TypeScript boilerplate files from architecture and schemas.'
   parameters = {
     type: 'object',
     properties: {},
@@ -23,10 +24,11 @@ export class GenerateCodebaseCapability implements ICapability {
 
   async execute(_args: unknown, context: { initiativeId: string }): Promise<CapabilityResult> {
     const artifacts = await this.artifactEngine.listArtifacts(context.initiativeId)
-    
+
     // Find Component Design or System Architecture
     const componentDesign = artifacts.find(
-      (a) => a.type === 'ComponentDesign' || a.type === 'SystemArchitecture' || a.type === 'Architecture'
+      (a) =>
+        a.type === 'ComponentDesign' || a.type === 'SystemArchitecture' || a.type === 'Architecture'
     )
     // Find generated Schema
     const schema = artifacts.find((a) => a.type === 'Schema')
@@ -34,7 +36,8 @@ export class GenerateCodebaseCapability implements ICapability {
     if (!componentDesign || !componentDesign.content) {
       return {
         success: false,
-        summary: 'No approved Architecture or Component Design artifact found. Code generation requires upstream design definitions.'
+        summary:
+          'No approved Architecture or Component Design artifact found. Code generation requires upstream design definitions.'
       }
     }
 
@@ -82,9 +85,12 @@ Return ONLY the raw JSON object inside JSON markdown blocks. Do not add conversa
 
     let parsedJson: { files: Array<{ path: string; content: string; description?: string }> }
     try {
-      const cleanJson = generatedContent.replace(/```json/g, '').replace(/```/g, '').trim()
+      const cleanJson = generatedContent
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim()
       parsedJson = JSON.parse(cleanJson)
-    } catch (err) {
+    } catch {
       return {
         success: false,
         summary: 'Failed to generate structured JSON codebase files from AI provider.',

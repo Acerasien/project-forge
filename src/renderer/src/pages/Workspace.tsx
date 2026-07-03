@@ -14,7 +14,18 @@ import { useDocumentStore } from '../store/useDocumentStore'
 import { useArtifactStore } from '../store/useArtifactStore'
 import { documentManager } from '../managers/DocumentManager'
 import { v4 as uuidv4 } from 'uuid'
-import { FileText, Sparkles, Download, ChevronDown, Trash2, Maximize2, ChevronUp, Send, Terminal, ChevronRight } from 'lucide-react'
+import {
+  FileText,
+  Sparkles,
+  Download,
+  ChevronDown,
+  Trash2,
+  Maximize2,
+  ChevronUp,
+  Send,
+  Terminal,
+  ChevronRight
+} from 'lucide-react'
 
 export const Workspace: React.FC = () => {
   const { initiatives, activeInitiativeId } = useInitiativeStore()
@@ -234,9 +245,7 @@ export const Workspace: React.FC = () => {
               onClick={() => setForcedToolId(tool.id)}
               className={cn(
                 'text-sm font-medium pb-3 transition-colors focus:outline-none relative capitalize',
-                activeToolId === tool.id
-                  ? 'text-white'
-                  : 'text-forge-text-muted hover:text-white'
+                activeToolId === tool.id ? 'text-white' : 'text-forge-text-muted hover:text-white'
               )}
             >
               {tool.displayName.toLowerCase()}
@@ -266,7 +275,9 @@ export const Workspace: React.FC = () => {
           <div className="h-full flex flex-col items-center justify-center text-forge-text-muted opacity-50 gap-4">
             <FileText size={64} className="opacity-50" />
             <div className="text-center">
-              <p className="text-sm text-forge-text font-medium mb-1">Select a document to begin.</p>
+              <p className="text-sm text-forge-text font-medium mb-1">
+                Select a document to begin.
+              </p>
               <p className="text-xs">Use the file explorer or flow view to open a document.</p>
             </div>
           </div>
@@ -279,19 +290,21 @@ export const Workspace: React.FC = () => {
     <div className="h-full flex flex-col bg-forge-panel">
       <div className="flex items-center justify-between border-b border-forge-border pb-3 px-4 pt-4 shrink-0">
         <span className="text-sm font-semibold text-white">AI Chat</span>
-        <button 
+        <button
           onClick={() => setIsChatOpen(false)}
           className="text-forge-text-muted hover:text-white transition-colors"
         >
           <ChevronRight size={16} />
         </button>
       </div>
-      
+
       <div className="flex-1 flex flex-col p-4 overflow-hidden">
         {/* Messages Thread */}
         <div className="flex-1 overflow-y-auto flex flex-col gap-4 text-xs text-forge-text-muted font-mono mb-4 pr-1">
           {messages.length === 0 ? (
-            <div className="opacity-50 text-xs italic">Start a conversation with the AI assistant...</div>
+            <div className="opacity-50 text-xs italic">
+              Start a conversation with the AI assistant...
+            </div>
           ) : (
             messages.map((msg) => (
               <div
@@ -353,7 +366,7 @@ export const Workspace: React.FC = () => {
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
           />
-          <button 
+          <button
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-forge-text-muted hover:text-forge-amber transition-colors disabled:opacity-50"
             onClick={handleGenerate}
             disabled={isGenerating || !prompt.trim()}
@@ -386,7 +399,7 @@ export const Workspace: React.FC = () => {
           <button className="hover:text-white transition-colors">
             <Maximize2 size={12} />
           </button>
-          <button 
+          <button
             onClick={() => setIsTerminalOpen(false)}
             className="hover:text-white transition-colors"
           >
@@ -412,40 +425,36 @@ export const Workspace: React.FC = () => {
                 <div>Goal: {String(activeWorkflow.plan.goal)}</div>
                 <div className="flex flex-col gap-1.5 mt-2">
                   {Array.isArray(activeWorkflow.plan.steps) &&
-                    activeWorkflow.plan.steps.map(
-                      (step: Record<string, unknown>, idx: number) => {
-                        const stepEvents = activeWorkflow.events.filter(
-                          (evt) =>
-                            evt.data && (evt.data as Record<string, unknown>).stepId === step.id
-                        )
-                        const lastEvent = stepEvents[stepEvents.length - 1]
-                        const isRunning = lastEvent?.type === 'step_started'
-                        const isCompleted = lastEvent?.type === 'step_completed'
-                        const isFailed = lastEvent?.type === 'step_failed'
+                    activeWorkflow.plan.steps.map((step: Record<string, unknown>, idx: number) => {
+                      const stepEvents = activeWorkflow.events.filter(
+                        (evt) =>
+                          evt.data && (evt.data as Record<string, unknown>).stepId === step.id
+                      )
+                      const lastEvent = stepEvents[stepEvents.length - 1]
+                      const isRunning = lastEvent?.type === 'step_started'
+                      const isCompleted = lastEvent?.type === 'step_completed'
+                      const isFailed = lastEvent?.type === 'step_failed'
 
-                        return (
-                          <div
-                            key={idx}
-                            className={cn(
-                              'flex items-center gap-2 p-1 rounded',
-                              isRunning
-                                ? 'bg-forge-amber/10 text-forge-amber'
-                                : isCompleted
-                                  ? 'text-green-500/70'
-                                  : isFailed
-                                    ? 'text-forge-error'
-                                    : 'opacity-50'
-                            )}
-                          >
-                            <span>
-                              {isRunning ? '⟳' : isCompleted ? '✓' : isFailed ? '✗' : '·'}
-                            </span>
-                            <span>{String(step.capabilityName)}</span>
-                            <span className="opacity-50 ml-2">- {String(step.description)}</span>
-                          </div>
-                        )
-                      }
-                    )}
+                      return (
+                        <div
+                          key={idx}
+                          className={cn(
+                            'flex items-center gap-2 p-1 rounded',
+                            isRunning
+                              ? 'bg-forge-amber/10 text-forge-amber'
+                              : isCompleted
+                                ? 'text-green-500/70'
+                                : isFailed
+                                  ? 'text-forge-error'
+                                  : 'opacity-50'
+                          )}
+                        >
+                          <span>{isRunning ? '⟳' : isCompleted ? '✓' : isFailed ? '✗' : '·'}</span>
+                          <span>{String(step.capabilityName)}</span>
+                          <span className="opacity-50 ml-2">- {String(step.description)}</span>
+                        </div>
+                      )
+                    })}
                 </div>
               </div>
             )}
@@ -467,10 +476,18 @@ export const Workspace: React.FC = () => {
         description="Workspace environment ready."
         action={
           <div className="flex gap-3">
-            <Button size="sm" variant="secondary" onClick={() => setIsCommandPaletteOpen(true)} className="flex items-center gap-2 border border-forge-amber/30 hover:border-forge-amber shadow-[0_0_10px_rgba(255,176,0,0.1)]">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex items-center gap-2 border border-forge-amber/30 hover:border-forge-amber shadow-[0_0_10px_rgba(255,176,0,0.1)]"
+            >
               <Sparkles size={14} className="text-forge-amber" /> Ask AI (⌘K)
             </Button>
-            <Button size="sm" className="flex items-center gap-2 bg-white text-black hover:bg-gray-200">
+            <Button
+              size="sm"
+              className="flex items-center gap-2 bg-white text-black hover:bg-gray-200"
+            >
               <Download size={14} /> Export
             </Button>
           </div>
@@ -486,25 +503,31 @@ export const Workspace: React.FC = () => {
 
       <div className="flex-1 min-h-0 mt-4 pb-1 flex flex-col gap-2">
         <div className="flex-1 min-h-0">
-          <WorkspaceLayout 
-            mainPanel={mainPanel} 
-            bottomPanel={isTerminalOpen ? bottomPanel : undefined} 
-            rightPanel={isChatOpen ? rightPanel : undefined} 
+          <WorkspaceLayout
+            mainPanel={mainPanel}
+            bottomPanel={isTerminalOpen ? bottomPanel : undefined}
+            rightPanel={isChatOpen ? rightPanel : undefined}
           />
         </div>
 
         {/* Status Bottom Bar to re-open collapsed panels */}
         <div className="h-6 flex items-center justify-between px-4 border-t border-forge-border/20 bg-forge-panel/50 rounded text-[10px] text-forge-text-muted select-none mt-1">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setIsTerminalOpen((prev) => !prev)}
-              className={cn("hover:text-white transition-colors flex items-center gap-1.5 font-mono", isTerminalOpen && "text-forge-amber")}
+              className={cn(
+                'hover:text-white transition-colors flex items-center gap-1.5 font-mono',
+                isTerminalOpen && 'text-forge-amber'
+              )}
             >
               <Terminal size={10} /> {isTerminalOpen ? 'Hide Terminal' : 'Show Terminal'}
             </button>
-            <button 
+            <button
               onClick={() => setIsChatOpen((prev) => !prev)}
-              className={cn("hover:text-white transition-colors flex items-center gap-1.5 font-mono", isChatOpen && "text-forge-amber")}
+              className={cn(
+                'hover:text-white transition-colors flex items-center gap-1.5 font-mono',
+                isChatOpen && 'text-forge-amber'
+              )}
             >
               <Sparkles size={10} /> {isChatOpen ? 'Hide AI Chat' : 'Show AI Chat (⌘K)'}
             </button>

@@ -30,6 +30,7 @@ export const Settings: React.FC = () => {
 
   useEffect(() => {
     store.loadSettings()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Auto-run connection test against the active profile on load to populate the health checker
@@ -340,7 +341,9 @@ export const Settings: React.FC = () => {
                         type="password"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
-                        placeholder={editingProfile.apiKey ? '••••••••••••' : 'Enter API Credentials'}
+                        placeholder={
+                          editingProfile.apiKey ? '••••••••••••' : 'Enter API Credentials'
+                        }
                       />
                     </div>
                   )}
@@ -355,7 +358,9 @@ export const Settings: React.FC = () => {
                         value={endpoint}
                         onChange={(e) => setEndpoint(e.target.value)}
                         placeholder={
-                          providerId === 'ollama' ? 'http://localhost:11434' : 'http://localhost:1234'
+                          providerId === 'ollama'
+                            ? 'http://localhost:11434'
+                            : 'http://localhost:1234'
                         }
                       />
                     </div>
@@ -499,7 +504,9 @@ export const Settings: React.FC = () => {
                     </span>
                   </div>
                   <div className="shrink-0">
-                    <span className="text-[10px] text-forge-text-muted uppercase font-bold">N/A</span>
+                    <span className="text-[10px] text-forge-text-muted uppercase font-bold">
+                      N/A
+                    </span>
                   </div>
                 </div>
 

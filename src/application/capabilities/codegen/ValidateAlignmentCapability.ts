@@ -8,7 +8,8 @@ import * as fs from 'fs'
 
 export class ValidateAlignmentCapability implements ICapability {
   name = 'validate_alignment'
-  description = 'Audits the physical workspace directory and engineering graph for structural alignment between design and code.'
+  description =
+    'Audits the physical workspace directory and engineering graph for structural alignment between design and code.'
   parameters = {
     type: 'object',
     properties: {},
@@ -27,22 +28,24 @@ export class ValidateAlignmentCapability implements ICapability {
 
     // 1. Load manifest
     const manifest = this.generationWorkspace.getManifest()
-    
+
     // 2. Load all artifacts in initiative
     const artifacts = await this.artifactEngine.listArtifacts(context.initiativeId)
-    
+
     // 3. Load entire initiative graph
     const relationships = await this.graphService.getInitiativeGraph(context.initiativeId)
 
     // Find all structural design components
     const componentDesigns = artifacts.filter(
-      (a) => a.type === 'ComponentDesign' || a.type === 'SystemArchitecture' || a.type === 'Architecture'
+      (a) =>
+        a.type === 'ComponentDesign' || a.type === 'SystemArchitecture' || a.type === 'Architecture'
     )
 
     // Check 1: Audit if any approved design component is NOT traced to any code or schema
     for (const comp of componentDesigns) {
       const hasImplementation = relationships.some(
-        (r) => r.sourceId === comp.id && (r.type === 'DefinesSchema' || r.type === 'ImplementsComponent')
+        (r) =>
+          r.sourceId === comp.id && (r.type === 'DefinesSchema' || r.type === 'ImplementsComponent')
       )
 
       if (!hasImplementation) {

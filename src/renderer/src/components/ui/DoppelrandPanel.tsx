@@ -16,7 +16,11 @@ export const DoppelrandPanel = React.forwardRef<HTMLDivElement, DoppelrandPanelP
     return (
       <div
         ref={ref}
-        className={cn('border rounded-xl p-6 overflow-hidden flex flex-col', borders[variant], className)}
+        className={cn(
+          'border rounded-xl p-6 overflow-hidden flex flex-col',
+          borders[variant],
+          className
+        )}
         {...props}
       >
         {children}

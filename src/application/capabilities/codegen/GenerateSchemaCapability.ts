@@ -8,7 +8,8 @@ import { GenerationPlan, VirtualFile } from '../../../domain/codegen/GenerationP
 
 export class GenerateSchemaCapability implements ICapability {
   name = 'generate_schema'
-  description = 'Reads the Component Design or Architecture and generates the database schema (SQL + Kysely).'
+  description =
+    'Reads the Component Design or Architecture and generates the database schema (SQL + Kysely).'
   parameters = {
     type: 'object',
     properties: {},
@@ -23,16 +24,18 @@ export class GenerateSchemaCapability implements ICapability {
 
   async execute(_args: unknown, context: { initiativeId: string }): Promise<CapabilityResult> {
     const artifacts = await this.artifactEngine.listArtifacts(context.initiativeId)
-    
+
     // Find Component Design or System Architecture or general Architecture
     const componentDesign = artifacts.find(
-      (a) => a.type === 'ComponentDesign' || a.type === 'SystemArchitecture' || a.type === 'Architecture'
+      (a) =>
+        a.type === 'ComponentDesign' || a.type === 'SystemArchitecture' || a.type === 'Architecture'
     )
 
     if (!componentDesign || !componentDesign.content) {
       return {
         success: false,
-        summary: 'No approved Architecture or Component Design artifact found. Schema generation requires upstream design definitions.'
+        summary:
+          'No approved Architecture or Component Design artifact found. Schema generation requires upstream design definitions.'
       }
     }
 
@@ -79,9 +82,12 @@ Return ONLY the raw JSON object inside JSON markdown blocks. Do not add conversa
     let parsedJson: { files: Array<{ path: string; content: string; description?: string }> }
     try {
       // Strip any markdown codeblock backticks if present
-      const cleanJson = generatedContent.replace(/```json/g, '').replace(/```/g, '').trim()
+      const cleanJson = generatedContent
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim()
       parsedJson = JSON.parse(cleanJson)
-    } catch (err) {
+    } catch {
       return {
         success: false,
         summary: 'Failed to generate structured JSON schema files from AI provider.',
