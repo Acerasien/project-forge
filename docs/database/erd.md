@@ -115,16 +115,16 @@ erDiagram
 
 ## Relationship Details
 
-| Relationship | Cardinality | FK Behaviour | Notes |
-|-------------|-------------|-------------|-------|
-| Initiative → Artifacts | 1:many | `ON DELETE CASCADE` | Deleting Initiative removes all artifacts |
-| Initiative → ADRs | 1:many | `ON DELETE CASCADE` | ADR numbers are scoped per Initiative |
-| Initiative → Tasks | 1:many | `ON DELETE CASCADE` | Tasks deleted with Initiative |
-| Initiative → AI Conversations | 1:many | `ON DELETE CASCADE` | Conversations deleted with Initiative |
-| Conversation → AI Messages | 1:many | `ON DELETE CASCADE` | Messages deleted with Conversation |
-| Artifact → Tasks | 1:many | `ON DELETE RESTRICT` | Cannot delete requirement with tasks |
-| ADR → ADR (`superseded_by_id`) | 0..1:0..1 | `ON DELETE SET NULL` | Self-referencing; supersession pointer cleared on delete |
-| `artifact_relationships` | many:many (graph) | No FK | Cross-table refs — integrity enforced by GraphService |
+| Relationship                   | Cardinality       | FK Behaviour         | Notes                                                    |
+| ------------------------------ | ----------------- | -------------------- | -------------------------------------------------------- |
+| Initiative → Artifacts         | 1:many            | `ON DELETE CASCADE`  | Deleting Initiative removes all artifacts                |
+| Initiative → ADRs              | 1:many            | `ON DELETE CASCADE`  | ADR numbers are scoped per Initiative                    |
+| Initiative → Tasks             | 1:many            | `ON DELETE CASCADE`  | Tasks deleted with Initiative                            |
+| Initiative → AI Conversations  | 1:many            | `ON DELETE CASCADE`  | Conversations deleted with Initiative                    |
+| Conversation → AI Messages     | 1:many            | `ON DELETE CASCADE`  | Messages deleted with Conversation                       |
+| Artifact → Tasks               | 1:many            | `ON DELETE RESTRICT` | Cannot delete requirement with tasks                     |
+| ADR → ADR (`superseded_by_id`) | 0..1:0..1         | `ON DELETE SET NULL` | Self-referencing; supersession pointer cleared on delete |
+| `artifact_relationships`       | many:many (graph) | No FK                | Cross-table refs — integrity enforced by GraphService    |
 
 ---
 

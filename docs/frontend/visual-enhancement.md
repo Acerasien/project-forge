@@ -22,12 +22,15 @@ To maintain a premium, expensive engineering environment feel, the following pat
 ## 2. Creative Engine
 
 ### Vibe & Texture: Ethereal Glass
+
 - **Background:** Deepest OLED black (`#050505`).
 - **Cards:** Vantablack cards with heavy `backdrop-blur-2xl` and pure `white/10` hairline borders.
 - **Atmosphere:** Deep, focused, high-contrast, with subtle glowing accents (Electric Amber `#F59E0B`).
 
 ### Layout Archetype: The Asymmetrical Bento
+
 The Initiative Home view uses a masonry-style CSS Grid to break visual monotony.
+
 - Cards span variable columns (`col-span-8`, `col-span-4`) based on content importance, not strict symmetry.
 - **Mobile Fallback:** Below `768px`, this aggressively collapses to a single-column stack (`grid-cols-1`) with generous gaps (`gap-6`).
 
@@ -36,6 +39,7 @@ The Initiative Home view uses a masonry-style CSS Grid to break visual monotony.
 ## 3. Component Architecture (Doppelrand)
 
 ### The "Double-Bezel"
+
 Major panels (Editor, Graph, Sidebar) do not sit flatly. They use nested enclosures to mimic physical, machined hardware:
 
 - **Outer Shell:** `<div className="p-1.5 bg-white/5 ring-1 ring-white/10 rounded-xl">`
@@ -44,6 +48,7 @@ Major panels (Editor, Graph, Sidebar) do not sit flatly. They use nested enclosu
 This creates a concentric corner radius and depth without relying on drop shadows.
 
 ### Nested CTA "Island" Buttons
+
 Primary buttons are pill-shaped (`rounded-full px-6 py-3`). If a button has a trailing icon (like an arrow), the icon sits inside its own distinct circular wrapper flush against the right padding:
 
 ```jsx
@@ -62,6 +67,7 @@ Primary buttons are pill-shaped (`rounded-full px-6 py-3`). If a button has a tr
 All transitions simulate real-world mass and spring physics.
 
 ### A. Custom Easing
+
 ```css
 /* tailwind.config.js extension */
 theme: {
@@ -72,15 +78,20 @@ theme: {
   }
 }
 ```
+
 All transitions use this curve (e.g., `transition-all duration-500 ease-forge`).
 
 ### B. Magnetic Hover Physics
+
 Interactive elements possess kinetic tension:
+
 - `active:scale-[0.98]` on buttons to simulate physical pressing.
 - `group-hover:translate-x-1 group-hover:-translate-y-[1px]` on nested button icons.
 
 ### C. Scroll Entry Interpolation
+
 When components mount (e.g., switching tabs, opening an artifact), they do not appear statically. They execute a heavy fade-up:
+
 - Initial: `translate-y-8 blur-sm opacity-0`
 - Final: `translate-y-0 blur-0 opacity-100`
 

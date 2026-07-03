@@ -9,24 +9,24 @@ Forge v1 is a local desktop application — there is no remote monitoring, no AP
 
 ## Local Logging
 
-| Dimension | Value |
-|-----------|-------|
-| **Log location** | `{userData}/logs/forge-{YYYY-MM-DD}.log` via `app.getPath('userData')` |
-| **Format** | Structured JSON, one object per line (JSONL) |
-| **Rotation** | Daily log files; retain last 30 days; max 50MB per file before rotation |
-| **Remote transmission** | None — no data sent without explicit user opt-in |
+| Dimension               | Value                                                                   |
+| ----------------------- | ----------------------------------------------------------------------- |
+| **Log location**        | `{userData}/logs/forge-{YYYY-MM-DD}.log` via `app.getPath('userData')`  |
+| **Format**              | Structured JSON, one object per line (JSONL)                            |
+| **Rotation**            | Daily log files; retain last 30 days; max 50MB per file before rotation |
+| **Remote transmission** | None — no data sent without explicit user opt-in                        |
 
 ### Log Format
 
 ```json
 {
-  "ts":        "2026-07-02T12:34:56.789Z",
-  "level":     "ERROR",
+  "ts": "2026-07-02T12:34:56.789Z",
+  "level": "ERROR",
   "component": "ArtifactEngine",
-  "msg":       "SQLite write failed",
+  "msg": "SQLite write failed",
   "artifactId": "art-abc123",
-  "error":     "SQLITE_FULL",
-  "details":   "disk quota exceeded at path /Users/..."
+  "error": "SQLITE_FULL",
+  "details": "disk quota exceeded at path /Users/..."
 }
 ```
 
@@ -34,12 +34,12 @@ Forge v1 is a local desktop application — there is no remote monitoring, no AP
 
 ## Log Levels
 
-| Level | When Used | Persisted Always? |
-|-------|----------|-----------------|
-| `ERROR` | Unexpected failures, SQLite errors, domain invariant violations, unhandled IPC exceptions | ✅ Always |
-| `WARN` | Gate overrides by user, near-limit conditions, deprecated usage patterns | ✅ Always |
-| `INFO` | App startup/shutdown, Initiative lifecycle events, artifact approvals, AI sessions captured | ✅ Always |
-| `DEBUG` | IPC call trace, SQL query timing, AI prompt size, performance measurements | ❌ Only when debug mode is enabled in Settings |
+| Level   | When Used                                                                                   | Persisted Always?                              |
+| ------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `ERROR` | Unexpected failures, SQLite errors, domain invariant violations, unhandled IPC exceptions   | ✅ Always                                      |
+| `WARN`  | Gate overrides by user, near-limit conditions, deprecated usage patterns                    | ✅ Always                                      |
+| `INFO`  | App startup/shutdown, Initiative lifecycle events, artifact approvals, AI sessions captured | ✅ Always                                      |
+| `DEBUG` | IPC call trace, SQL query timing, AI prompt size, performance measurements                  | ❌ Only when debug mode is enabled in Settings |
 
 ---
 
@@ -47,37 +47,37 @@ Forge v1 is a local desktop application — there is no remote monitoring, no AP
 
 ### Application Lifecycle
 
-| Event | Level | Details |
-|-------|-------|---------|
-| App started | INFO | Forge version, Electron version, db path, schema version |
-| SQLite database opened | INFO | Path, schema version, migration count applied |
-| Schema migration applied | INFO | Migration version, duration |
-| App shutdown (clean) | INFO | Uptime duration |
-| App crash (uncaught exception) | ERROR | Stack trace, last known state |
+| Event                          | Level | Details                                                  |
+| ------------------------------ | ----- | -------------------------------------------------------- |
+| App started                    | INFO  | Forge version, Electron version, db path, schema version |
+| SQLite database opened         | INFO  | Path, schema version, migration count applied            |
+| Schema migration applied       | INFO  | Migration version, duration                              |
+| App shutdown (clean)           | INFO  | Uptime duration                                          |
+| App crash (uncaught exception) | ERROR | Stack trace, last known state                            |
 
 ### Initiative & Artifact Events
 
-| Event | Level | Details |
-|-------|-------|---------|
-| Initiative created | INFO | initiativeId, name |
-| Initiative archived / deleted | INFO | initiativeId |
-| Artifact approved | INFO | artifactId, type, initiativeId |
-| Artifact approval gate overridden | WARN | artifactId, blockedBy[], reason: "user-confirmed" |
-| Artifact set to NeedsReview (cascade) | INFO | artifactId, triggeredByArtifactId |
-| ADR accepted | INFO | adrId, seqNumber, initiativeId |
-| Domain invariant violation attempted | WARN | rule, entityId, details |
+| Event                                 | Level | Details                                           |
+| ------------------------------------- | ----- | ------------------------------------------------- |
+| Initiative created                    | INFO  | initiativeId, name                                |
+| Initiative archived / deleted         | INFO  | initiativeId                                      |
+| Artifact approved                     | INFO  | artifactId, type, initiativeId                    |
+| Artifact approval gate overridden     | WARN  | artifactId, blockedBy[], reason: "user-confirmed" |
+| Artifact set to NeedsReview (cascade) | INFO  | artifactId, triggeredByArtifactId                 |
+| ADR accepted                          | INFO  | adrId, seqNumber, initiativeId                    |
+| Domain invariant violation attempted  | WARN  | rule, entityId, details                           |
 
 ### AI & Integration Events
 
-| Event | Level | Details |
-|-------|-------|---------|
-| AI generation started | INFO | artifactId, provider, promptTokenEstimate |
-| AI generation completed | INFO | artifactId, durationMs, responseTokenEstimate |
-| AI generation failed | ERROR | artifactId, errorCode, message (API key REDACTED) |
-| AI session captured | INFO | sessionId, artifactId, status |
-| GitHub push attempted | INFO | taskId, repository |
-| GitHub push succeeded | INFO | taskId, issueNumber |
-| GitHub push failed | ERROR | taskId, errorCode, message |
+| Event                   | Level | Details                                           |
+| ----------------------- | ----- | ------------------------------------------------- |
+| AI generation started   | INFO  | artifactId, provider, promptTokenEstimate         |
+| AI generation completed | INFO  | artifactId, durationMs, responseTokenEstimate     |
+| AI generation failed    | ERROR | artifactId, errorCode, message (API key REDACTED) |
+| AI session captured     | INFO  | sessionId, artifactId, status                     |
+| GitHub push attempted   | INFO  | taskId, repository                                |
+| GitHub push succeeded   | INFO  | taskId, issueNumber                               |
+| GitHub push failed      | ERROR | taskId, errorCode, message                        |
 
 ---
 
@@ -114,23 +114,23 @@ Since Forge has no remote telemetry, the debugging workflow for a user-reported 
 
 Critical operation timing is logged when debug mode is on:
 
-| Operation | Expected | Alert threshold |
-|-----------|---------|----------------|
-| Artifact load (from SQLite) | < 50ms | > 200ms → log WARN |
-| Full-text search query (FTS5) | < 100ms | > 500ms → log WARN |
-| Artifact content auto-save | < 10ms | > 100ms → log WARN |
-| AI generation (full round-trip) | < 30s p95 | > 30s → log WARN |
-| Initiative export (full) | < 5s | > 15s → log WARN |
+| Operation                       | Expected  | Alert threshold    |
+| ------------------------------- | --------- | ------------------ |
+| Artifact load (from SQLite)     | < 50ms    | > 200ms → log WARN |
+| Full-text search query (FTS5)   | < 100ms   | > 500ms → log WARN |
+| Artifact content auto-save      | < 10ms    | > 100ms → log WARN |
+| AI generation (full round-trip) | < 30s p95 | > 30s → log WARN   |
+| Initiative export (full)        | < 5s      | > 15s → log WARN   |
 
 ---
 
 ## No Remote Observability in v1
 
-| Capability | v1 Status | When to add |
-|-----------|-----------|------------|
-| Remote error reporting (e.g., Sentry) | ❌ Not included | v2 if user opts in; requires consent UI |
-| Usage analytics | ❌ Not included | v2 if user opts in; GDPR consent required |
-| Crash reporting | ❌ Not included | v2 if user opts in |
-| Uptime monitoring | ❌ Not applicable | Local app — no server to monitor |
+| Capability                            | v1 Status         | When to add                               |
+| ------------------------------------- | ----------------- | ----------------------------------------- |
+| Remote error reporting (e.g., Sentry) | ❌ Not included   | v2 if user opts in; requires consent UI   |
+| Usage analytics                       | ❌ Not included   | v2 if user opts in; GDPR consent required |
+| Crash reporting                       | ❌ Not included   | v2 if user opts in                        |
+| Uptime monitoring                     | ❌ Not applicable | Local app — no server to monitor          |
 
 > **Standing rule:** No telemetry is added without: (1) explicit user opt-in in Settings, (2) clear disclosure of what is collected, and (3) a working opt-out that permanently disables collection.

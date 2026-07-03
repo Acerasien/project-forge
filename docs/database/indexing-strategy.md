@@ -21,20 +21,20 @@ See [query-catalog.md](query-catalog.md) for the SQL of each query pattern.
 
 ## Query Pattern → Index Mapping
 
-| # | Query | Filter Columns | Sort | Index Used |
-|---|-------|---------------|------|-----------|
-| Q1 | Home screen — active initiatives | `status != 'Archived'` | `updated_at DESC` | `idx_initiatives_status_updated` |
-| Q2 | Load all artifacts for initiative | `initiative_id` | — | `idx_artifacts_initiative_type_status` (leading column) |
-| Q3 | Approval gate check — upstream approved | `initiative_id, type, status` | — | `idx_artifacts_initiative_type_status` (all 3 columns) |
-| Q4 | NeedsReview cascade — downstream CTE | `source_id` (recursive) | — | `idx_relationships_source` |
-| Q5 | Load all ADRs for initiative | `initiative_id` | `seq_number ASC` | UNIQUE(initiative_id, seq_number) implicit index |
-| Q6 | Load tasks for initiative | `initiative_id` | `sort_order ASC` | `idx_tasks_initiative_sort` |
-| Q7 | Get tasks by requirement | `requirement_id` | — | `idx_tasks_requirement` |
-| Q8 | Get AI sessions for artifact | `artifact_id` | `created_at DESC` | `idx_ai_sessions_artifact` |
-| Q9 | Full-text search | FTS5 MATCH | `rank` | FTS5 internal index |
-| Q10 | Graph — all edges for initiative | `source_id IN (...)` | — | `idx_relationships_source` |
-| Q11 | Graph — reverse lookup (what points to X) | `target_id` | — | `idx_relationships_target` |
-| Q12 | Export — all data for initiative | `initiative_id` | — | All `idx_*_initiative` indexes |
+| #   | Query                                     | Filter Columns                | Sort              | Index Used                                              |
+| --- | ----------------------------------------- | ----------------------------- | ----------------- | ------------------------------------------------------- |
+| Q1  | Home screen — active initiatives          | `status != 'Archived'`        | `updated_at DESC` | `idx_initiatives_status_updated`                        |
+| Q2  | Load all artifacts for initiative         | `initiative_id`               | —                 | `idx_artifacts_initiative_type_status` (leading column) |
+| Q3  | Approval gate check — upstream approved   | `initiative_id, type, status` | —                 | `idx_artifacts_initiative_type_status` (all 3 columns)  |
+| Q4  | NeedsReview cascade — downstream CTE      | `source_id` (recursive)       | —                 | `idx_relationships_source`                              |
+| Q5  | Load all ADRs for initiative              | `initiative_id`               | `seq_number ASC`  | UNIQUE(initiative_id, seq_number) implicit index        |
+| Q6  | Load tasks for initiative                 | `initiative_id`               | `sort_order ASC`  | `idx_tasks_initiative_sort`                             |
+| Q7  | Get tasks by requirement                  | `requirement_id`              | —                 | `idx_tasks_requirement`                                 |
+| Q8  | Get AI sessions for artifact              | `artifact_id`                 | `created_at DESC` | `idx_ai_sessions_artifact`                              |
+| Q9  | Full-text search                          | FTS5 MATCH                    | `rank`            | FTS5 internal index                                     |
+| Q10 | Graph — all edges for initiative          | `source_id IN (...)`          | —                 | `idx_relationships_source`                              |
+| Q11 | Graph — reverse lookup (what points to X) | `target_id`                   | —                 | `idx_relationships_target`                              |
+| Q12 | Export — all data for initiative          | `initiative_id`               | —                 | All `idx_*_initiative` indexes                          |
 
 ---
 
@@ -139,13 +139,13 @@ A standalone `type` index would have low cardinality (6 values) and would not el
 
 ## Total Index Count: 10
 
-| Table | Indexes | Notes |
-|-------|---------|-------|
-| `initiatives` | 1 | + PK on `id` |
-| `artifacts` | 1 | + PK on `id` |
-| `adrs` | 0 explicit | UNIQUE(initiative_id, seq_number) serves as index |
-| `tasks` | 2 | + PK on `id`, FK on `requirement_id` |
-| `ai_sessions` | 2 | + PK on `id` |
-| `artifact_relationships` | 3 | + PK on `id`, UNIQUE on (source, target, type) |
-| `settings` | 0 explicit | PK lookup only |
-| `artifacts_fts` | internal | FTS5 manages its own B-tree index |
+| Table                    | Indexes    | Notes                                             |
+| ------------------------ | ---------- | ------------------------------------------------- |
+| `initiatives`            | 1          | + PK on `id`                                      |
+| `artifacts`              | 1          | + PK on `id`                                      |
+| `adrs`                   | 0 explicit | UNIQUE(initiative_id, seq_number) serves as index |
+| `tasks`                  | 2          | + PK on `id`, FK on `requirement_id`              |
+| `ai_sessions`            | 2          | + PK on `id`                                      |
+| `artifact_relationships` | 3          | + PK on `id`, UNIQUE on (source, target, type)    |
+| `settings`               | 0 explicit | PK lookup only                                    |
+| `artifacts_fts`          | internal   | FTS5 manages its own B-tree index                 |

@@ -11,7 +11,7 @@
 
 ## The Problem
 
-Developers lose the *why* behind decisions, skip engineering structure under deadline pressure, and scatter their thinking across disconnected tools (Notion, GitHub, Linear, Slack). No existing tool owns the structured, traceable process that happens **before the first line of code is written**.
+Developers lose the _why_ behind decisions, skip engineering structure under deadline pressure, and scatter their thinking across disconnected tools (Notion, GitHub, Linear, Slack). No existing tool owns the structured, traceable process that happens **before the first line of code is written**.
 
 ---
 
@@ -25,10 +25,10 @@ Forge occupies the **upstream thinking layer**: everything from idea to architec
 
 ## Users
 
-| Version | Users |
-|---------|-------|
-| v1 | Solo developers who want engineering discipline without multi-tool overhead |
-| v2+ | Small-to-mid engineering teams (2–50 engineers) |
+| Version | Users                                                                       |
+| ------- | --------------------------------------------------------------------------- |
+| v1      | Solo developers who want engineering discipline without multi-tool overhead |
+| v2+     | Small-to-mid engineering teams (2–50 engineers)                             |
 
 ---
 
@@ -46,27 +46,27 @@ Forge occupies the **upstream thinking layer**: everything from idea to architec
 
 ## Constraints
 
-| Constraint | Detail |
-|-----------|--------|
-| **Delivery** | Electron desktop application (v1). Platform-agnostic architecture for future web version. |
-| **Data strategy** | Fully local-first, offline-capable. No cloud dependency in v1. |
-| **Storage abstraction** | `StoragePort` interface — cloud sync can be added in v2 without touching domain logic. |
-| **AI dependency** | AI must never be load-bearing. All core workflows must function without an AI provider configured. |
-| **Team** | Solo developer. Every decision must pass: *"Can one person understand, debug, and evolve this in 3 years?"* |
-| **Scope boundary** | Forge owns the upstream thinking layer. Source code, Git, CI/CD, deployment = out of scope for v1. |
+| Constraint              | Detail                                                                                                      |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Delivery**            | Electron desktop application (v1). Platform-agnostic architecture for future web version.                   |
+| **Data strategy**       | Fully local-first, offline-capable. No cloud dependency in v1.                                              |
+| **Storage abstraction** | `StoragePort` interface — cloud sync can be added in v2 without touching domain logic.                      |
+| **AI dependency**       | AI must never be load-bearing. All core workflows must function without an AI provider configured.          |
+| **Team**                | Solo developer. Every decision must pass: _"Can one person understand, debug, and evolve this in 3 years?"_ |
+| **Scope boundary**      | Forge owns the upstream thinking layer. Source code, Git, CI/CD, deployment = out of scope for v1.          |
 
 ---
 
 ## External Dependencies
 
-| Dependency | Type | Risk |
-|-----------|------|------|
-| AI LLM provider (OpenAI / Anthropic / Gemini) | Optional AI features | API churn, cost, outages — mitigated by AIPort abstraction |
-| GitHub REST API | Optional push integration | API changes — mitigated by IntegrationHub isolation |
-| OS Keychain | Secure credential storage | Platform differences — mitigated by `keytar` |
+| Dependency                                    | Type                      | Risk                                                       |
+| --------------------------------------------- | ------------------------- | ---------------------------------------------------------- |
+| AI LLM provider (OpenAI / Anthropic / Gemini) | Optional AI features      | API churn, cost, outages — mitigated by AIPort abstraction |
+| GitHub REST API                               | Optional push integration | API changes — mitigated by IntegrationHub isolation        |
+| OS Keychain                                   | Secure credential storage | Platform differences — mitigated by `keytar`               |
 
 ---
 
-*See [system-context.md](system-context.md) for the C4 context diagram.*  
-*See [component-list.md](component-list.md) for component breakdown.*  
-*See [../decisions/README.md](../decisions/README.md) for ADRs.*
+_See [system-context.md](system-context.md) for the C4 context diagram._  
+_See [component-list.md](component-list.md) for component breakdown._  
+_See [../decisions/README.md](../decisions/README.md) for ADRs._

@@ -26,6 +26,7 @@ AI providers are volatile: APIs change, models are deprecated, new providers eme
 All AI operations go through an **`AIPort` interface** defined in the Application layer. v1 supports one provider via a concrete adapter (e.g., `OpenAIAdapter` or `AnthropicAdapter`). Additional providers are new adapter implementations — zero changes to the Application or Domain layers.
 
 The `AIPort` interface exposes only what the application layer needs:
+
 - `generate(prompt, context): Promise<string>` — draft content generation
 - `review(content, context): Promise<ReviewResult>` — critique and gap analysis
 - `isConfigured(): boolean` — whether a valid provider is set up
@@ -36,10 +37,10 @@ No LLM SDK is imported anywhere above the Infrastructure layer.
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| Direct integration with one AI SDK (e.g., OpenAI SDK in application services) | Fast for v1, but creates hard migration cost when provider changes. Rejected. |
-| LangChain abstraction | Provides provider switching, but introduces significant version churn risk (LangChain breaking changes are frequent) and opaque abstraction layers. Rejected for a solo long-lived project. |
+| Alternative                                                                   | Why Rejected                                                                                                                                                                                |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Direct integration with one AI SDK (e.g., OpenAI SDK in application services) | Fast for v1, but creates hard migration cost when provider changes. Rejected.                                                                                                               |
+| LangChain abstraction                                                         | Provides provider switching, but introduces significant version churn risk (LangChain breaking changes are frequent) and opaque abstraction layers. Rejected for a solo long-lived project. |
 
 ---
 

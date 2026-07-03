@@ -1,19 +1,20 @@
 import { ipcMain } from 'electron'
-import { InitiativeService } from '@application/services/InitiativeService'
-import { InitiativeDTO, Result } from '@shared/types/ipc'
+import { WorkspaceRuntime } from '../../application/services/WorkspaceRuntime'
+import { InitiativeDTO, Result } from '../../shared/types/ipc'
 
 export class InitiativeIpcHandler {
-  constructor(private readonly initiativeService: InitiativeService) {}
+  constructor(private readonly runtime: WorkspaceRuntime) {}
 
   private handleError(error: unknown): {
     success: false
     error: { code: string; message: string }
   } {
-    console.error('[IPC Error]', error)
+    console.error('[Initiative IPC Error]', error)
 
     const message = error instanceof Error ? error.message : 'Unknown error occurred'
     let code = 'UNKNOWN_ERROR'
     if (message.includes('not found')) code = 'INITIATIVE_NOT_FOUND'
+    if (message.includes('WORKSPACE_NOT_INITIALIZED')) code = 'WORKSPACE_NOT_INITIALIZED'
 
     return { success: false, error: { code, message } }
   }
@@ -23,7 +24,8 @@ export class InitiativeIpcHandler {
       'initiatives:create',
       async (_, name: string): Promise<Result<InitiativeDTO>> => {
         try {
-          const initiative = await this.initiativeService.createInitiative(name)
+          const service = this.runtime.getInitiativeService()
+          const initiative = await service.createInitiative(name)
           return {
             success: true,
             data: {
@@ -45,7 +47,8 @@ export class InitiativeIpcHandler {
       'initiatives:get',
       async (_, id: string): Promise<Result<InitiativeDTO | null>> => {
         try {
-          const initiative = await this.initiativeService.getInitiative(id)
+          const service = this.runtime.getInitiativeService()
+          const initiative = await service.getInitiative(id)
           if (!initiative) {
             return { success: true, data: null }
           }
@@ -68,7 +71,8 @@ export class InitiativeIpcHandler {
 
     ipcMain.handle('initiatives:list', async (): Promise<Result<InitiativeDTO[]>> => {
       try {
-        const initiatives = await this.initiativeService.listInitiatives()
+        const service = this.runtime.getInitiativeService()
+        const initiatives = await service.listInitiatives()
         return {
           success: true,
           data: initiatives.map((initiative) => ({
@@ -89,7 +93,8 @@ export class InitiativeIpcHandler {
       'initiatives:rename',
       async (_, id: string, newName: string): Promise<Result<InitiativeDTO>> => {
         try {
-          const initiative = await this.initiativeService.renameInitiative(id, newName)
+          const service = this.runtime.getInitiativeService()
+          const initiative = await service.renameInitiative(id, newName)
           return {
             success: true,
             data: {
@@ -109,7 +114,8 @@ export class InitiativeIpcHandler {
 
     ipcMain.handle('initiatives:delete', async (_, id: string): Promise<Result<void>> => {
       try {
-        await this.initiativeService.deleteInitiative(id)
+        const service = this.runtime.getInitiativeService()
+        await service.deleteInitiative(id)
         return { success: true, data: undefined }
       } catch (error) {
         return this.handleError(error)

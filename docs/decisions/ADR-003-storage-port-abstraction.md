@@ -34,10 +34,10 @@ No domain or application code imports a database driver directly.
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| Direct SQLite calls in application services | Creates hard dependency on SQLite. Every storage change requires modifying application code. Rejected. |
-| Design cloud sync now and build it locally | Premature complexity. Sync conflict resolution (CRDTs, operational transforms) is a multi-month engineering problem. Explicitly deferred per product decision. |
+| Alternative                                 | Why Rejected                                                                                                                                                   |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Direct SQLite calls in application services | Creates hard dependency on SQLite. Every storage change requires modifying application code. Rejected.                                                         |
+| Design cloud sync now and build it locally  | Premature complexity. Sync conflict resolution (CRDTs, operational transforms) is a multi-month engineering problem. Explicitly deferred per product decision. |
 
 ---
 

@@ -21,6 +21,7 @@ Select the query construction strategy within `LocalSQLiteAdapter` to ensure typ
 The `StoragePort` interface (ADR-003) abstracts all persistence from the application and domain layers. The question is: how does `LocalSQLiteAdapter` construct queries internally?
 
 Three options were evaluated:
+
 1. **Raw SQL strings** — type-unsafe, error-prone column name references
 2. **Kysely** — TypeScript query builder, SQL-semantic, no code generation
 3. **Drizzle ORM** — TypeScript schema definition, generates migrations
@@ -48,12 +49,12 @@ LocalSQLiteAdapter (implements StoragePort)
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| **Raw SQL strings** | Column name typos are runtime errors. Hard to refactor when schema evolves. No TypeScript completion. Acceptable for trivial apps; risky for a 3-year solo project. |
-| **Drizzle ORM** | TypeScript-first and SQLite-native — closest alternative. Rejected because Drizzle owns the schema definition in TypeScript, conflicting with the decision to own schema in plain `.sql` migration files. Migration portability to PostgreSQL is cleaner with SQL files. |
-| **Prisma** | Server-oriented, generates a Prisma Client, has its own migration tool. Does not support `better-sqlite3` natively. Overkill for a local desktop app. |
-| **TypeORM** | Decorator-heavy, significant version churn, poor SQLite support track record. |
+| Alternative         | Why Rejected                                                                                                                                                                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Raw SQL strings** | Column name typos are runtime errors. Hard to refactor when schema evolves. No TypeScript completion. Acceptable for trivial apps; risky for a 3-year solo project.                                                                                                      |
+| **Drizzle ORM**     | TypeScript-first and SQLite-native — closest alternative. Rejected because Drizzle owns the schema definition in TypeScript, conflicting with the decision to own schema in plain `.sql` migration files. Migration portability to PostgreSQL is cleaner with SQL files. |
+| **Prisma**          | Server-oriented, generates a Prisma Client, has its own migration tool. Does not support `better-sqlite3` natively. Overkill for a local desktop app.                                                                                                                    |
+| **TypeORM**         | Decorator-heavy, significant version churn, poor SQLite support track record.                                                                                                                                                                                            |
 
 ---
 

@@ -19,6 +19,7 @@ Select the rich text / code editing component for artifact content authoring —
 ## Context
 
 Forge artifacts (Vision, Requirements, Architecture, System Design) contain long-form structured text that may include Markdown, diagrams (Mermaid), and code snippets. The editor must:
+
 - Handle large documents efficiently (50,000+ words for System Design)
 - Render Markdown with syntax highlighting
 - Remain performant in Electron's renderer process
@@ -32,6 +33,7 @@ Forge artifacts (Vision, Requirements, Architecture, System Design) contain long
 Use **CodeMirror 6** as the artifact content editor throughout Forge.
 
 **Key CodeMirror 6 features leveraged:**
+
 - Virtual DOM-free rendering — only visible content is painted; handles large documents without performance degradation
 - First-class Markdown support via `@codemirror/lang-markdown`
 - Extension system — inline AI suggestion ghost text, custom keybindings, and linting rules can be added as extensions
@@ -42,12 +44,12 @@ Use **CodeMirror 6** as the artifact content editor throughout Forge.
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| **Monaco Editor** (VS Code's editor) | Larger bundle size (~4MB vs ~800KB for CodeMirror 6 with extensions). Monolithic architecture — harder to tree-shake. VS Code integration is a feature irrelevant to Forge's context. |
-| **Tiptap** (ProseMirror-based WYSIWYG) | Excellent WYSIWYG but abstracts away raw Markdown — Forge needs the source Markdown to be the artifact content for export fidelity. |
-| **Quill** | Older architecture, limited TypeScript support, poorer performance on large documents. |
-| **`<textarea>`** | Trivial to implement but no syntax highlighting, poor performance on large content, no extensibility path for AI features. |
+| Alternative                            | Why Rejected                                                                                                                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Monaco Editor** (VS Code's editor)   | Larger bundle size (~4MB vs ~800KB for CodeMirror 6 with extensions). Monolithic architecture — harder to tree-shake. VS Code integration is a feature irrelevant to Forge's context. |
+| **Tiptap** (ProseMirror-based WYSIWYG) | Excellent WYSIWYG but abstracts away raw Markdown — Forge needs the source Markdown to be the artifact content for export fidelity.                                                   |
+| **Quill**                              | Older architecture, limited TypeScript support, poorer performance on large documents.                                                                                                |
+| **`<textarea>`**                       | Trivial to implement but no syntax highlighting, poor performance on large content, no extensibility path for AI features.                                                            |
 
 ---
 

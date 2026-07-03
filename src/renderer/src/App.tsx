@@ -6,6 +6,7 @@ import { useInitiativeStore } from './store/useInitiativeStore'
 import { Dashboard } from './pages/Dashboard'
 import { Workspace } from './pages/Workspace'
 import { Settings } from './pages/Settings'
+import { Onboarding } from './pages/Onboarding'
 import { ErrorState } from './components/ui/States'
 
 const GlobalErrorFallback: React.FC<FallbackProps> = ({ error, resetErrorBoundary }) => {
@@ -89,7 +90,7 @@ const StartupRecovery: React.FC<{ error: string; dbPath?: string; onRetry: () =>
 function App(): React.JSX.Element {
   const fetchInitiatives = useInitiativeStore((state) => state.fetchInitiatives)
   const [initStatus, setInitStatus] = useState<{
-    status: 'loading' | 'success' | 'error'
+    status: 'loading' | 'success' | 'error' | 'onboarding'
     error?: string
     dbPath?: string
   }>({ status: 'loading' })
@@ -99,8 +100,12 @@ function App(): React.JSX.Element {
     // Just fetch status and set final result.
     const result = await window.forge.system.getStatus()
     if (result.success) {
-      setInitStatus({ status: 'success' })
-      fetchInitiatives()
+      if (result.data.isSetup) {
+        setInitStatus({ status: 'success' })
+        fetchInitiatives()
+      } else {
+        setInitStatus({ status: 'onboarding' })
+      }
     } else {
       setInitStatus({ status: 'error', error: result.error.message, dbPath: result.error.dbPath })
     }
@@ -117,6 +122,10 @@ function App(): React.JSX.Element {
         Initializing Forge Backend...
       </div>
     )
+  }
+
+  if (initStatus.status === 'onboarding') {
+    return <Onboarding onComplete={checkStatus} />
   }
 
   if (initStatus.status === 'error') {

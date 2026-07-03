@@ -28,7 +28,7 @@ If we built this into `AIGenerationService`, it would become a massive monolith 
 
 We introduce an **Agent Orchestration Layer** with distinct separation of concerns:
 
-1. **`AIGenerationService` remains the low-level LLM abstraction.** It handles provider routing, prompts, streaming, and tool schemas. It does *not* know about workflows or long-running goals.
+1. **`AIGenerationService` remains the low-level LLM abstraction.** It handles provider routing, prompts, streaming, and tool schemas. It does _not_ know about workflows or long-running goals.
 2. **`EngineeringAgent` serves as the high-level orchestrator.** It takes a goal, builds the context (`ContextBuilder`), delegates planning to a strategy (`IPlanningStrategy`), and then passes the plan to an executor (`WorkflowExecutor`).
 3. **`WorkflowExecutor` is an AI-agnostic state machine.** It takes an `ExecutionPlan` and runs it step-by-step through the `CapabilityRegistry` (abstracted by `ICapabilityExecutor`). It tracks runtime state via `ExecutionSession`.
 
@@ -38,9 +38,9 @@ By composing `AIGenerationService` rather than replacing it, we can reuse all ex
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| **Monolithic AI Service** | Bloats the LLM service with workflow logic, making it impossible to swap out planners or run non-AI workflows. Rejected. |
+| Alternative                      | Why Rejected                                                                                                                                                                                                                     |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Monolithic AI Service**        | Bloats the LLM service with workflow logic, making it impossible to swap out planners or run non-AI workflows. Rejected.                                                                                                         |
 | **Direct tool execution by LLM** | Standard ReAct pattern where the LLM just calls tools in a loop. Hard to track progress in a UI, unpredictable, and difficult to persist/resume. Rejected in favor of explicit `ExecutionPlan` generation followed by execution. |
 
 ---

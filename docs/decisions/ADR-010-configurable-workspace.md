@@ -29,6 +29,7 @@ The SQLite database, logs, and export files must live somewhere on the user's fi
 Forge uses a **user-configurable workspace directory**, defaulting to `~/Forge` on first launch.
 
 **Workspace structure:**
+
 ```
 ~/Forge/                        ← default, user can move to any location
 ├── forge.db                    ← SQLite database (WAL mode)
@@ -43,6 +44,7 @@ Forge uses a **user-configurable workspace directory**, defaulting to `~/Forge` 
 ```
 
 **Workspace configuration:**
+
 - Stored in Electron's `app.getPath('userData')` config (not in the workspace itself — config survives workspace move)
 - First-run: Forge creates `~/Forge/` automatically if it does not exist
 - User can change workspace path in Settings → Workspace → "Move workspace"
@@ -53,6 +55,7 @@ Forge uses a **user-configurable workspace directory**, defaulting to `~/Forge` 
 ## Context — Export Threading (Q4)
 
 Exporting a full Initiative (200+ artifacts, ADRs, tasks, AI sessions) involves:
+
 1. Multiple SQLite reads (all tables for one initiative)
 2. Markdown rendering and formatting for each entity
 3. File writes to the filesystem
@@ -66,6 +69,7 @@ If run synchronously in the main process, a large export could block the Electro
 Export operations run in a **`worker_threads` worker** with a progress UI in the renderer.
 
 **Export flow:**
+
 ```
 User clicks "Export Initiative" → UI shows progress modal (0%)
 Main process: ExportService.exportInitiative(initiativeId, targetPath)
@@ -85,6 +89,7 @@ UI: show "Export complete" with "Open folder" button
 ## Consequences
 
 ### Workspace Directory
+
 ✅ User can place the workspace in a cloud-synced folder (Dropbox, iCloud) as a manual v1 sync workaround.  
 ✅ Workspace is self-contained — backup is as simple as copying the directory.  
 ✅ Config (workspace path) survives workspace moves.  
@@ -92,6 +97,7 @@ UI: show "Export complete" with "Open folder" button
 ⚠️ Multiple workspaces are not supported in v1 — only one active workspace at a time.
 
 ### Export Worker
+
 ✅ Main process and UI remain fully responsive during export.  
 ✅ Progress UI gives user feedback on large exports.  
 ✅ SQLite WAL mode enables the worker's read-only connection to coexist with main process writes.  

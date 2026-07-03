@@ -71,14 +71,14 @@ flowchart TD
 
 ## Process Boundary Summary
 
-| Boundary | Mechanism | Direction |
-|----------|-----------|-----------|
-| Renderer ↔ Main | `contextBridge` + `ipcRenderer.invoke` | Bidirectional (request/response) |
-| Main ↔ SQLite | `better-sqlite3` synchronous API | Read/Write |
-| Main ↔ AI Provider | HTTPS (async Promise) | Outbound only |
-| Main ↔ GitHub API | HTTPS (async Promise) | Outbound only |
-| Main ↔ OS Keychain | `keytar` platform API | Read/Write |
-| Main ↔ Filesystem | Node.js `fs` module | Read/Write |
+| Boundary           | Mechanism                              | Direction                        |
+| ------------------ | -------------------------------------- | -------------------------------- |
+| Renderer ↔ Main    | `contextBridge` + `ipcRenderer.invoke` | Bidirectional (request/response) |
+| Main ↔ SQLite      | `better-sqlite3` synchronous API       | Read/Write                       |
+| Main ↔ AI Provider | HTTPS (async Promise)                  | Outbound only                    |
+| Main ↔ GitHub API  | HTTPS (async Promise)                  | Outbound only                    |
+| Main ↔ OS Keychain | `keytar` platform API                  | Read/Write                       |
+| Main ↔ Filesystem  | Node.js `fs` module                    | Read/Write                       |
 
 ---
 

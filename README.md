@@ -3,6 +3,7 @@
 Forge is an autonomous, agentic software engineering assistant designed to model, design, and validate software systems. Rather than operating as a simple chat interface or a basic code editor, Forge is built on the principle: **"Artifacts are the source of truth; chat is a presentation layer."**
 
 Forge guides you through a traceable, structured engineering pipeline:
+
 ```
      Vision (Scope & Feasibility)
                 ↓
@@ -20,12 +21,15 @@ Each stage consumes approved artifacts, records immutable execution provenance, 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - **Node.js** (v20+ recommended)
 - **pnpm** (preferred package manager)
 - **SQLite3** (for local data persistence)
 
 ### Installation
+
 Clone the repository and install dependencies:
+
 ```bash
 git clone https://github.com/Acerasien/project-forge.git
 cd project-forge
@@ -33,13 +37,17 @@ pnpm install
 ```
 
 ### Run in Development
+
 Start the hot-reloading development server for both the Electron main and React renderer processes:
+
 ```bash
 pnpm dev
 ```
 
 ### Packaging & Distribution
+
 To package Forge into a native standalone installer for your platform:
+
 ```bash
 # Build for Windows
 pnpm build:win
@@ -66,16 +74,20 @@ Forge is provider-agnostic and abstracts all LLM interactions through its `AIPor
 ## 🛠️ How to Use Forge
 
 ### 1. Create an Initiative
+
 An **Initiative** is your engineering workspace. It represents a product, a feature migration, or a repository that you want to design.
 
 ### 2. Run the Requirements Engineering Pack
+
 - **Generate Requirements:** Forge analyzes your initial Vision draft to produce formal requirements.
 - **Generate User Stories:** Breaks down the approved requirements into discrete user stories.
 - **Produce Implementation Plan:** Outlines the sequence of work.
 - **Approval Gate:** Once you approve the Requirements, they transition from `Draft` to `Approved`.
 
 ### 3. Run the Architecture Engineering Pack
-*Note: This capability enforces **Domain-Enforced Approval Gates**—it will reject design generation if requirements are not approved.*
+
+_Note: This capability enforces **Domain-Enforced Approval Gates**—it will reject design generation if requirements are not approved._
+
 - **System Architecture:** Forge transforms approved requirements into structural design artifacts.
 - **Architecture Decision Records (ADRs):** Documents major design choices and trade-offs.
 - **Component & Deployment Design:** Details runtime boundaries and deployment topology.
@@ -86,10 +98,13 @@ An **Initiative** is your engineering workspace. It represents a product, a feat
 ## 📊 Visualizing the System
 
 ### Traceability Graph
+
 Forge maintains a strict directed acyclic graph of your decisions (using `GraphService` under the hood). Inside the app, navigate to the **Graph Tool** (built on React Flow) to visualize how code components trace back to architectural decisions, which trace back to ADRs, requirements, and your original vision.
 
 ### Codebase Graph (Graphify)
+
 We utilize **Graphify** to index our own codebase. To regenerate or view the codebase structure of Forge itself:
+
 ```bash
 # Re-extract code files and update the index
 graphify update .
@@ -103,6 +118,7 @@ graphify update .
 ## 🏗️ Architecture & Codebase Layout
 
 Forge strictly follows **Hexagonal Clean Architecture** patterns:
+
 ```
 docs/                       # Comprehensive system documentation & ADRs
 src/
@@ -113,4 +129,5 @@ src/
 ├── main/                   # Electron main process entry & IPC handlers
 └── renderer/               # Presentation layer (React, TailwindCSS, CodeMirror 6, React Flow)
 ```
+
 For deep architectural details, see the [`/docs/`](docs/README.md) directory.

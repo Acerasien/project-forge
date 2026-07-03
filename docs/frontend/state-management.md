@@ -3,7 +3,7 @@
 
 # State Management & IPC
 
-Forge's frontend is a "dumb" view layer. The **SQLite database is the single source of truth**, running synchronously in the Electron Main process. 
+Forge's frontend is a "dumb" view layer. The **SQLite database is the single source of truth**, running synchronously in the Electron Main process.
 
 The frontend uses **Zustand** as an ephemeral UI cache to bind data to React components without Prop Drilling.
 
@@ -32,13 +32,17 @@ For high-frequency interactions (e.g., typing in the editor, dragging a graph no
 ## Zustand Store Architecture
 
 ### 1. `useUIStore`
+
 Manages purely local interface state. Never touches IPC.
+
 - `sidebarOpen: boolean`
 - `activeTheme: 'dark'` (always dark in v1, but structured for future)
 - `activeTab: string` (for split panes)
 
 ### 2. `useInitiativeStore`
+
 Caches the active Initiative and its dependent entities.
+
 - `initiative: Initiative | null`
 - `artifacts: Artifact[]`
 - `tasks: Task[]`
@@ -51,8 +55,8 @@ When navigating to a new Initiative, this store is cleared and rehydrated via IP
 
 ## React Flow State
 
-`reactflow` requires specific state structures for Nodes and Edges. 
+`reactflow` requires specific state structures for Nodes and Edges.
 
 - Nodes and Edges are computed dynamically from the `useInitiativeStore` data.
-- **Do not duplicate state:** React Flow's `nodes` state should be derived from `artifacts`, `tasks`, etc. 
-- When a node is dragged, React Flow's `onNodesChange` fires. We update the visual position locally, but node positions are *not* persisted to SQLite in v1 (auto-layout `dagre` runs on load).
+- **Do not duplicate state:** React Flow's `nodes` state should be derived from `artifacts`, `tasks`, etc.
+- When a node is dragged, React Flow's `onNodesChange` fires. We update the visual position locally, but node positions are _not_ persisted to SQLite in v1 (auto-layout `dagre` runs on load).

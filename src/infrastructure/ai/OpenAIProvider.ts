@@ -3,10 +3,51 @@ import { IAIProvider, ProviderOptions, GenerationEvent } from '../../domain/ai/I
 import { Message } from '../../domain/ai/Message'
 
 export class OpenAIProvider implements IAIProvider {
+  readonly name: string = 'OpenAI'
+  readonly supportsStreaming: boolean = true
+  readonly supportsToolCalling: boolean = true
+  readonly supportsVision: boolean = true
+  readonly supportsReasoning: boolean = true
+
   private client: OpenAI
 
-  constructor(apiKey: string) {
-    this.client = new OpenAI({ apiKey })
+  constructor(apiKey: string, endpoint?: string) {
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: endpoint || undefined
+    })
+  }
+
+  async testConnection(): Promise<{ success: boolean; latencyMs: number; error?: string }> {
+    const start = Date.now()
+    try {
+      // Test key validity by retrieving models list
+      await this.client.models.list()
+      return {
+        success: true,
+        latencyMs: Date.now() - start
+      }
+    } catch (err) {
+      return {
+        success: false,
+        latencyMs: Date.now() - start,
+        error: err instanceof Error ? err.message : String(err)
+      }
+    }
+  }
+
+  async fetchAvailableModels(): Promise<string[]> {
+    try {
+      const response = await this.client.models.list()
+      // Filter out non-chat models or simply sort and return their IDs
+      return response.data
+        .map((model) => model.id)
+        .filter((id) => id.startsWith('gpt-') || id.startsWith('o1') || id.startsWith('o3'))
+        .sort()
+    } catch (error) {
+      console.error('Failed to list OpenAI models:', error)
+      return ['gpt-4o', 'gpt-4o-mini', 'o1-mini', 'o3-mini'] // sensible fallback
+    }
   }
 
   async *generateStream(

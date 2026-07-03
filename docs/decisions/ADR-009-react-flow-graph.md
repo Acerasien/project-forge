@@ -19,6 +19,7 @@ Select the graph visualisation library for Forge's engineering graph view, and d
 ## Context
 
 Forge's engineering graph (US-9.1) is a core differentiator — it makes the traceability between all engineering artifacts visible and navigable. The graph must:
+
 - Render 20–200+ nodes with typed directed edges
 - Be interactive: click a node to open the artifact, drag to reposition
 - Display node type, status, and relationship labels
@@ -36,6 +37,7 @@ Use **React Flow** (`reactflow`) as the engineering graph visualisation library.
 **Graph node scope (Q7):** All entity types are nodes — Artifacts, ADRs, Tasks, and AI Sessions — connected by typed directed edges from the `artifact_relationships` table.
 
 **Node visual design:**
+
 - Each node type has a distinct visual style (color, icon, shape)
 - Node status is reflected in the node border/badge (Draft: grey, Approved: green, NeedsReview: amber)
 - Edge labels display the relationship type (DerivedFrom, InformedBy, DecidedBy, etc.)
@@ -44,12 +46,12 @@ Use **React Flow** (`reactflow`) as the engineering graph visualisation library.
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| **d3-force** | Powerful but requires building all React integration from scratch. No built-in node/edge component system. High implementation cost for equivalent UX. |
+| Alternative                       | Why Rejected                                                                                                                                                                  |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **d3-force**                      | Powerful but requires building all React integration from scratch. No built-in node/edge component system. High implementation cost for equivalent UX.                        |
 | **elkjs** (Eclipse Layout Kernel) | Excellent automatic layout algorithms, but designed as a pure layout engine — requires a separate rendering layer. More suitable for static diagrams than interactive graphs. |
-| **Cytoscape.js** | Feature-rich but not React-native. Requires DOM manipulation outside React's rendering model, leading to state sync issues. |
-| **Vis.js Network** | jQuery-era API, poor React integration, limited TypeScript support. |
+| **Cytoscape.js**                  | Feature-rich but not React-native. Requires DOM manipulation outside React's rendering model, leading to state sync issues.                                                   |
+| **Vis.js Network**                | jQuery-era API, poor React integration, limited TypeScript support.                                                                                                           |
 
 ---
 
@@ -70,6 +72,7 @@ Use **React Flow** (`reactflow`) as the engineering graph visualisation library.
 The decision that "everything is a node" has one schema consequence: the `artifact_relationships` table's `source_id` and `target_id` columns must be able to reference entities from multiple tables (`artifacts`, `adrs`, `tasks`, `ai_sessions`). The current schema already supports this — IDs are opaque UUIDs and the foreign key constraints are intentionally generic.
 
 **GraphService must handle:**
+
 - Fetching nodes from all four entity tables for a given Initiative
 - Merging them into a unified node list for React Flow
 - Mapping `artifact_relationships` rows to React Flow edge objects

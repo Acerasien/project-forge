@@ -35,13 +35,13 @@ C4Context
 
 ## External Systems
 
-| System | Role | Forge Relationship |
-|--------|------|--------------------|
-| **Developer** | Primary user | Creates Initiatives, authors artifacts, reviews AI output |
-| **AI LLM Provider** | Optional AI backend | Forge sends prompts; receives completions. User provides API key. |
-| **GitHub API** | Optional push integration | One-way: Forge pushes Tasks as Issues. Never pulls. |
-| **OS Keychain** | Secure credential store | Forge reads/writes API keys. Keys never written to disk in plaintext. |
-| **Local Filesystem** | Persistence | All Initiative data lives in a single `.sqlite` file in the Forge data directory. |
+| System               | Role                      | Forge Relationship                                                                |
+| -------------------- | ------------------------- | --------------------------------------------------------------------------------- |
+| **Developer**        | Primary user              | Creates Initiatives, authors artifacts, reviews AI output                         |
+| **AI LLM Provider**  | Optional AI backend       | Forge sends prompts; receives completions. User provides API key.                 |
+| **GitHub API**       | Optional push integration | One-way: Forge pushes Tasks as Issues. Never pulls.                               |
+| **OS Keychain**      | Secure credential store   | Forge reads/writes API keys. Keys never written to disk in plaintext.             |
+| **Local Filesystem** | Persistence               | All Initiative data lives in a single `.sqlite` file in the Forge data directory. |
 
 ---
 
@@ -53,5 +53,5 @@ C4Context
 
 ---
 
-*See [component-list.md](component-list.md) for internal component breakdown.*  
-*See [../decisions/ADR-001-electron-delivery.md](../decisions/ADR-001-electron-delivery.md) for delivery mechanism decision.*
+_See [component-list.md](component-list.md) for internal component breakdown._  
+_See [../decisions/ADR-001-electron-delivery.md](../decisions/ADR-001-electron-delivery.md) for delivery mechanism decision._

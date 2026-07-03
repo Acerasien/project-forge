@@ -204,4 +204,10 @@ export class AIGenerationService {
       this.activeGenerations.delete(id)
     }
   }
+
+  public cancelAll(): void {
+    for (const id of Array.from(this.activeGenerations.keys())) {
+      this.cancel(id)
+    }
+  }
 }

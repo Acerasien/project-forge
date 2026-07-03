@@ -29,12 +29,12 @@ Forge v1 is delivered as an **Electron desktop application**. The renderer layer
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| Native macOS app (Swift/AppKit) | macOS-only — eliminates cross-platform path and future web version. |
-| Web app with browser local storage (IndexedDB) | Limited storage APIs, poor OS keychain integration, no reliable offline native execution for a developer tool. |
-| CLI tool | Too low-level for the workflow-oriented UX Forge requires. |
-| Tauri (Rust backend + WebView) | Smaller bundle size and better performance, but smaller ecosystem and higher solo-maintainability risk. Re-evaluate at v2. |
+| Alternative                                    | Why Rejected                                                                                                               |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Native macOS app (Swift/AppKit)                | macOS-only — eliminates cross-platform path and future web version.                                                        |
+| Web app with browser local storage (IndexedDB) | Limited storage APIs, poor OS keychain integration, no reliable offline native execution for a developer tool.             |
+| CLI tool                                       | Too low-level for the workflow-oriented UX Forge requires.                                                                 |
+| Tauri (Rust backend + WebView)                 | Smaller bundle size and better performance, but smaller ecosystem and higher solo-maintainability risk. Re-evaluate at v2. |
 
 ---
 

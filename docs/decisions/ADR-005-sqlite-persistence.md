@@ -26,6 +26,7 @@ Forge needs to store structured, relational data (Initiatives, Artifacts, ADRs, 
 Use **SQLite via `better-sqlite3`** in the Electron main process. Use SQLite's built-in **FTS5 extension** for full-text search. A single `.sqlite` file in the Forge data directory serves as the local database.
 
 **Key design decisions within this choice:**
+
 - **Artifact relationships are first-class entities** — an explicit `artifact_relationships` table with typed directed edges (sourceId, targetId, relationshipType, createdAt). This supports Forge's long-term vision of an interconnected engineering knowledge graph and enables graph traversal via recursive CTEs without a separate graph database.
 - **No domain or application code imports `better-sqlite3` directly.** All access goes through the `StoragePort` interface (see [ADR-003](ADR-003-storage-port-abstraction.md)).
 - **The `LocalSQLiteAdapter`** wraps `better-sqlite3` and implements `StoragePort`. Future adapters implement the same interface.
@@ -34,12 +35,12 @@ Use **SQLite via `better-sqlite3`** in the Electron main process. Use SQLite's b
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| JSON files per entity | Simple but poor queryability, no transactions, no full-text search, difficult referential integrity. |
-| PouchDB | Designed for offline-first + sync. More complex than needed for v1 (sync deferred). |
-| LevelDB | Key-value store — relational queries require application-level join logic. |
-| MongoDB (local via Electron) | Document model poor fit for a relational graph. Heavy for a local-only tool. |
+| Alternative                  | Why Rejected                                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| JSON files per entity        | Simple but poor queryability, no transactions, no full-text search, difficult referential integrity. |
+| PouchDB                      | Designed for offline-first + sync. More complex than needed for v1 (sync deferred).                  |
+| LevelDB                      | Key-value store — relational queries require application-level join logic.                           |
+| MongoDB (local via Electron) | Document model poor fit for a relational graph. Heavy for a local-only tool.                         |
 
 ---
 

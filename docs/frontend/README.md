@@ -11,13 +11,13 @@ Complete frontend design specifications for Forge v1 — aesthetic direction, de
 
 ---
 
-| File | Description |
-|------|-------------|
-| [design-system.md](design-system.md) | Typography (3-tier), Colors (Slate + Amber), Spatial Grid, and Motion |
-| [layout-architecture.md](layout-architecture.md) | App shell CSS Grid layout and the 3 core views (Home, Graph, Editor) |
-| [state-management.md](state-management.md) | Zustand stores, IPC hydration flow, and optimistic updates |
-| [visual-enhancement.md](visual-enhancement.md) | High-end visual design rules, Doppelrand architecture, and cubic-bezier motion |
-| [ux-audit.md](ux-audit.md) | Usability guardrails, AI undo history, IPC latency visibility, and empty states |
+| File                                             | Description                                                                     |
+| ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| [design-system.md](design-system.md)             | Typography (3-tier), Colors (Slate + Amber), Spatial Grid, and Motion           |
+| [layout-architecture.md](layout-architecture.md) | App shell CSS Grid layout and the 3 core views (Home, Graph, Editor)            |
+| [state-management.md](state-management.md)       | Zustand stores, IPC hydration flow, and optimistic updates                      |
+| [visual-enhancement.md](visual-enhancement.md)   | High-end visual design rules, Doppelrand architecture, and cubic-bezier motion  |
+| [ux-audit.md](ux-audit.md)                       | Usability guardrails, AI undo history, IPC latency visibility, and empty states |
 
 ---
 

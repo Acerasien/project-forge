@@ -94,12 +94,25 @@ export interface ArtifactIntelligenceDTO {
 
 import type { GenerationRequest } from '../../domain/ai/GenerationRequest'
 import type { AgentEvent } from '../../domain/ai/IAgent'
+import type { AppSettings, AIProfile } from './settings'
 
 export interface AgentSubscription {
   onEvent: (cb: (event: AgentEvent) => void) => AgentSubscription
 }
 
 export interface IForgeAPI {
+  settings: {
+    get: () => Promise<Result<AppSettings>>
+    update: (updates: Partial<Omit<AppSettings, 'version'>>) => Promise<Result<void>>
+    saveProfile: (profile: AIProfile) => Promise<Result<void>>
+    deleteProfile: (id: string) => Promise<Result<void>>
+    selectWorkspace: () => Promise<Result<string | null>>
+    initializeWorkspace: (path: string, profile: AIProfile | null) => Promise<Result<void>>
+    testConnection: (
+      profile: AIProfile
+    ) => Promise<Result<{ success: boolean; latencyMs: number; error?: string }>>
+    fetchModels: (profile: AIProfile) => Promise<Result<string[]>>
+  }
   initiatives: {
     create: (name: string) => Promise<Result<InitiativeDTO>>
     get: (id: string) => Promise<Result<InitiativeDTO | null>>
@@ -129,7 +142,7 @@ export interface IForgeAPI {
     generate: (request: GenerationRequest) => GenerationSubscription
   }
   system: {
-    getStatus: () => Promise<Result<void>>
+    getStatus: () => Promise<Result<{ isSetup: boolean }>>
     revealDatabase: () => Promise<void>
     resetDatabase: () => Promise<Result<void>>
   }

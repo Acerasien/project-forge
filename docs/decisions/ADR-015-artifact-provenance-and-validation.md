@@ -24,7 +24,7 @@ As the platform scales to support numerous engineering disciplines (Requirements
 
 ## Decision
 
-1. **Artifact Provenance as a Domain Concern:** 
+1. **Artifact Provenance as a Domain Concern:**
    Provenance is a first-class concern on the `Artifact` aggregate rather than opaque metadata or a separate table. We will strictly define origin fields (`generatedByCapabilityId`, `generatedByCapabilityVersion`, `generationSessionId`, `generatedWorkflowId`) directly on the model.
 2. **Provenance is Immutable Historical Information:**
    Generating metadata records how an artifact came into existence. **It should never be rewritten simply because the artifact content changes.** New generations produce new provenance. They do not rewrite history.

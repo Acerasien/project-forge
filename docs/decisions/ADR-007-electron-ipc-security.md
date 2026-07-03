@@ -24,6 +24,7 @@ Electron's security model requires that the renderer process (which runs web con
 ## Decision
 
 The renderer runs in a sandboxed context with:
+
 - `nodeIntegration: false`
 - `contextIsolation: true`
 - `sandbox: true`
@@ -31,6 +32,7 @@ The renderer runs in a sandboxed context with:
 All main-process capabilities are exposed to the renderer **exclusively** through a typed `contextBridge` preload script. IPC channels are explicitly enumerated in the preload — no wildcard listeners, no dynamic channel names.
 
 **Pattern:**
+
 ```
 Renderer (React UI)
     ↓ window.forge.initiativeManager.create(name, description)
@@ -46,11 +48,11 @@ Every capability exposed to the renderer is explicitly declared. If it's not in 
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| `nodeIntegration: true` | Renderer has full Node.js access. Any XSS becomes full system compromise. Categorically rejected. |
-| `@electron/remote` module | Deprecated pattern with the same security problems as `nodeIntegration`. Rejected. |
-| IPC without contextBridge (direct `ipcRenderer` in renderer) | Requires `contextIsolation: false`. Weakens the security boundary. Rejected. |
+| Alternative                                                  | Why Rejected                                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `nodeIntegration: true`                                      | Renderer has full Node.js access. Any XSS becomes full system compromise. Categorically rejected. |
+| `@electron/remote` module                                    | Deprecated pattern with the same security problems as `nodeIntegration`. Rejected.                |
+| IPC without contextBridge (direct `ipcRenderer` in renderer) | Requires `contextIsolation: false`. Weakens the security boundary. Rejected.                      |
 
 ---
 

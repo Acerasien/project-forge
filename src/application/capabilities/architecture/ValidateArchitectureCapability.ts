@@ -61,14 +61,17 @@ Output a JSON array of findings. Each finding must match:
       const match = generatedContent.match(/\[.*\]/s)
       if (match) {
         const rawFindings = JSON.parse(match[0])
-        findings = rawFindings.map((f: Record<string, unknown>) => new Finding(
-          f.severity as FindingSeverity,
-          f.category as FindingCategory,
-          f.artifactId as string,
-          f.message as string,
-          f.recommendation as string,
-          this.name
-        ))
+        findings = rawFindings.map(
+          (f: Record<string, unknown>) =>
+            new Finding(
+              f.severity as FindingSeverity,
+              f.category as FindingCategory,
+              f.artifactId as string,
+              f.message as string,
+              f.recommendation as string,
+              this.name
+            )
+        )
       }
     } catch {
       // If parsing fails, create a generic finding

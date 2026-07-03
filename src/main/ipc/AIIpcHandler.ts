@@ -1,19 +1,16 @@
 import { ipcMain } from 'electron'
-import { AIGenerationService } from '../../application/services/AIGenerationService'
-import { IConversationRepository } from '../../domain/repositories/IConversationRepository'
+import { WorkspaceRuntime } from '../../application/services/WorkspaceRuntime'
 import { GenerationRequest } from '../../domain/ai/GenerationRequest'
 import { Conversation } from '../../domain/ai/Conversation'
 import { ConversationDTO, MessageDTO, Result } from '../../shared/types/ipc'
 import { randomUUID } from 'crypto'
 
-export function registerAIIpcHandlers(
-  aiService: AIGenerationService,
-  conversationRepo: IConversationRepository
-): void {
+export function registerAIIpcHandlers(runtime: WorkspaceRuntime): void {
   ipcMain.handle(
     'ai:createConversation',
     async (_, initiativeId: string, title?: string): Promise<Result<ConversationDTO>> => {
       try {
+        const repo = runtime.getConversationRepository()
         const id = randomUUID()
         const conversation = new Conversation(
           id,
@@ -22,7 +19,7 @@ export function registerAIIpcHandlers(
           new Date(),
           new Date()
         )
-        await conversationRepo.createConversation(conversation)
+        await repo.createConversation(conversation)
         return {
           success: true,
           data: {
@@ -44,7 +41,8 @@ export function registerAIIpcHandlers(
     'ai:listConversations',
     async (_, initiativeId: string): Promise<Result<ConversationDTO[]>> => {
       try {
-        const convos = await conversationRepo.listConversations(initiativeId)
+        const repo = runtime.getConversationRepository()
+        const convos = await repo.listConversations(initiativeId)
         return {
           success: true,
           data: convos.map((c) => ({
@@ -69,7 +67,8 @@ export function registerAIIpcHandlers(
       id: string
     ): Promise<Result<{ conversation: ConversationDTO; messages: MessageDTO[] } | null>> => {
       try {
-        const data = await conversationRepo.loadConversation(id)
+        const repo = runtime.getConversationRepository()
+        const data = await repo.loadConversation(id)
         if (!data) return { success: true, data: null }
 
         return {
@@ -100,6 +99,14 @@ export function registerAIIpcHandlers(
   )
 
   ipcMain.handle('ai:generate', (event, id: string, request: GenerationRequest) => {
+    let aiService: any
+    try {
+      aiService = runtime.getAIGenerationService()
+    } catch (err: any) {
+      event.sender.send(`ai:stream:error:${id}`, `Workspace not initialized: ${err.message}`)
+      return false
+    }
+
     const handleDestroyed = (): void => {
       aiService.cancel(id)
     }
@@ -136,7 +143,12 @@ export function registerAIIpcHandlers(
   })
 
   ipcMain.handle('ai:cancel', (_event, id: string) => {
-    aiService.cancel(id)
-    return true
+    try {
+      const aiService = runtime.getAIGenerationService()
+      aiService.cancel(id)
+      return true
+    } catch {
+      return false
+    }
   })
 }

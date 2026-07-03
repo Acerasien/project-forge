@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS artifact_relationships (
 ```
 
 **No FK constraints on `source_id`/`target_id`:** SQLite FKs reference exactly one table. Since graph nodes span four tables, FKs are not applicable here. `GraphService` validates entity existence before inserting edges and enforces the DAG invariant (no cycles) in application code.  
-**`UNIQUE(source_id, target_id, type)`:** Prevents duplicate edges. Two entities can have multiple edges of *different* types (e.g., an ADR both `InformedBy` and `DecidedBy` the same artifact), but not two edges of the *same* type.
+**`UNIQUE(source_id, target_id, type)`:** Prevents duplicate edges. Two entities can have multiple edges of _different_ types (e.g., an ADR both `InformedBy` and `DecidedBy` the same artifact), but not two edges of the _same_ type.
 
 ---
 
@@ -253,16 +253,16 @@ END;
 
 **Known keys (v1):**
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `ai_provider` | string | Active AI provider: `'openai'` \| `'anthropic'` \| `'gemini'` \| `'ollama'` \| `'lmstudio'` |
-| `ai_model` | string | Selected model name for the active provider |
-| `ai_base_url` | string | Custom base URL for Ollama/LM Studio (overrides default localhost) |
-| `ai_max_output_tokens` | number | User-configured max output token limit (null = provider default) |
-| `ai_timeout_seconds` | number | Request timeout (default: 60) |
-| `github_repo` | string | Default GitHub repository for Task push (`owner/repo`) |
-| `theme` | string | `'system'` \| `'light'` \| `'dark'` |
-| `telemetry_opt_in` | boolean | `false` by default — user must explicitly opt in |
+| Key                    | Type    | Description                                                                                 |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------- |
+| `ai_provider`          | string  | Active AI provider: `'openai'` \| `'anthropic'` \| `'gemini'` \| `'ollama'` \| `'lmstudio'` |
+| `ai_model`             | string  | Selected model name for the active provider                                                 |
+| `ai_base_url`          | string  | Custom base URL for Ollama/LM Studio (overrides default localhost)                          |
+| `ai_max_output_tokens` | number  | User-configured max output token limit (null = provider default)                            |
+| `ai_timeout_seconds`   | number  | Request timeout (default: 60)                                                               |
+| `github_repo`          | string  | Default GitHub repository for Task push (`owner/repo`)                                      |
+| `theme`                | string  | `'system'` \| `'light'` \| `'dark'`                                                         |
+| `telemetry_opt_in`     | boolean | `false` by default — user must explicitly opt in                                            |
 
 ---
 

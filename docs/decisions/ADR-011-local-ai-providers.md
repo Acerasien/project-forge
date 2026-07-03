@@ -34,21 +34,21 @@ The decision to include **Ollama** and **LM Studio** is architecturally signific
 
 Forge v1 ships with adapters for the following providers, selectable during onboarding and in Settings:
 
-| Provider | Type | Auth | Base URL | Notes |
-|---------|------|------|----------|-------|
-| **OpenAI** | Cloud | API key (OS Keychain) | `api.openai.com` | GPT-4o, GPT-4-turbo |
-| **Anthropic** | Cloud | API key (OS Keychain) | `api.anthropic.com` | Claude 3.5 Sonnet, Claude 3 Opus |
-| **Google Gemini** | Cloud | API key (OS Keychain) | `generativelanguage.googleapis.com` | Gemini 1.5 Pro |
-| **Ollama** | Local | None | `http://localhost:11434` (default, user-configurable) | User installs Ollama; model selected in Forge |
-| **LM Studio** | Local | None | `http://localhost:1234` (default, user-configurable) | OpenAI-compatible API; user loads model |
-| **Skip** | — | — | — | Configure later; AI features disabled until set |
+| Provider          | Type  | Auth                  | Base URL                                              | Notes                                           |
+| ----------------- | ----- | --------------------- | ----------------------------------------------------- | ----------------------------------------------- |
+| **OpenAI**        | Cloud | API key (OS Keychain) | `api.openai.com`                                      | GPT-4o, GPT-4-turbo                             |
+| **Anthropic**     | Cloud | API key (OS Keychain) | `api.anthropic.com`                                   | Claude 3.5 Sonnet, Claude 3 Opus                |
+| **Google Gemini** | Cloud | API key (OS Keychain) | `generativelanguage.googleapis.com`                   | Gemini 1.5 Pro                                  |
+| **Ollama**        | Local | None                  | `http://localhost:11434` (default, user-configurable) | User installs Ollama; model selected in Forge   |
+| **LM Studio**     | Local | None                  | `http://localhost:1234` (default, user-configurable)  | OpenAI-compatible API; user loads model         |
+| **Skip**          | —     | —                     | —                                                     | Configure later; AI features disabled until set |
 
 ### Onboarding Flow (Q6 — Provider-Agnostic)
 
 ```
 First launch → "Set up AI" screen
   ├── OpenAI    → enter API key → validate → save to OS Keychain
-  ├── Anthropic → enter API key → validate → save to OS Keychain  
+  ├── Anthropic → enter API key → validate → save to OS Keychain
   ├── Gemini    → enter API key → validate → save to OS Keychain
   ├── Ollama    → auto-detect localhost:11434 → list available models → user selects
   ├── LM Studio → auto-detect localhost:1234 → user selects loaded model
@@ -59,17 +59,18 @@ All providers are first-class options at setup — no "recommended" provider is 
 
 ### Token Limits (Q5 — Provider Defaults + Advanced Override)
 
-| Setting | Default | Override |
-|---------|---------|---------|
-| Max input tokens | Provider default (model context window) | User-configurable in Settings → AI → Advanced |
-| Max output tokens | Provider default | User-configurable |
-| Request timeout | 60 seconds | User-configurable (30–120s) |
+| Setting           | Default                                 | Override                                      |
+| ----------------- | --------------------------------------- | --------------------------------------------- |
+| Max input tokens  | Provider default (model context window) | User-configurable in Settings → AI → Advanced |
+| Max output tokens | Provider default                        | User-configurable                             |
+| Request timeout   | 60 seconds                              | User-configurable (30–120s)                   |
 
 **Why provider defaults:** Each model has a different context window (4K to 200K+ tokens). Defaulting to provider limits avoids truncating context unnecessarily. Advanced users who want to cap for cost control can set explicit limits.
 
 ### Local Provider Security Posture
 
 Local providers (Ollama, LM Studio) communicate over `localhost` — no data leaves the machine. This is an explicit privacy benefit:
+
 - No API key required
 - No data sent to external servers
 - Forge sends prompts to the local HTTP server; responses never traverse the network
@@ -80,11 +81,11 @@ Local providers (Ollama, LM Studio) communicate over `localhost` — no data lea
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| Cloud providers only (OpenAI, Anthropic, Gemini) | Excludes privacy-conscious users and users in environments where cloud AI is prohibited. Ollama and LM Studio have significant developer adoption. Rejected. |
+| Alternative                                                             | Why Rejected                                                                                                                                                                     |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloud providers only (OpenAI, Anthropic, Gemini)                        | Excludes privacy-conscious users and users in environments where cloud AI is prohibited. Ollama and LM Studio have significant developer adoption. Rejected.                     |
 | One provider only (e.g., OpenAI) with a "Switch provider" feature later | Creates a perceived lock-in even when the architecture is provider-agnostic. Provider-agnostic onboarding from day one signals that Forge does not favor any provider. Rejected. |
-| Fixed token limits | Limits advanced users from tuning for cost. Provider models have different optimal settings. Rejected. |
+| Fixed token limits                                                      | Limits advanced users from tuning for cost. Provider models have different optimal settings. Rejected.                                                                           |
 
 ---
 
@@ -107,17 +108,17 @@ Supporting Ollama and LM Studio requires the `AIPort` interface to expose model 
 ```typescript
 interface AIPort {
   isConfigured(): boolean
-  listModels(): Promise<AIModel[]>          // New: for local providers that expose model lists
+  listModels(): Promise<AIModel[]> // New: for local providers that expose model lists
   generate(prompt: string, options: AIGenerateOptions): Promise<string>
   review(content: string, context: AIContext): Promise<ReviewResult>
-  getCapabilities(): AICapabilities          // New: provider feature flags
+  getCapabilities(): AICapabilities // New: provider feature flags
 }
 
 interface AICapabilities {
   supportsStreaming: boolean
   supportsModelListing: boolean
   maxContextTokens: number
-  isLocal: boolean                           // true for Ollama, LM Studio
+  isLocal: boolean // true for Ollama, LM Studio
 }
 ```
 

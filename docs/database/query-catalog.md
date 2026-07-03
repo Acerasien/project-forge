@@ -241,9 +241,9 @@ COMMIT;
 
 ## N+1 Analysis Summary
 
-| Risk | Detected? | Resolution |
-|------|----------|------------|
-| Home screen: per-initiative artifact counts | ✅ Detected | Fixed: single JOIN with `COUNT(DISTINCT)` aggregates (Q1) |
-| Graph: per-node entity resolution | ✅ Detected | Fixed: batch load all nodes in 4 queries, resolve in memory (Q7) |
-| Initiative detail: per-artifact content load | ✅ Detected | Fixed: content loaded on-demand only when artifact is opened (Q2) |
-| AI session list: per-session content load | ✅ Detected | Fixed: list queries exclude prompt/response; loaded lazily on session open |
+| Risk                                         | Detected?   | Resolution                                                                 |
+| -------------------------------------------- | ----------- | -------------------------------------------------------------------------- |
+| Home screen: per-initiative artifact counts  | ✅ Detected | Fixed: single JOIN with `COUNT(DISTINCT)` aggregates (Q1)                  |
+| Graph: per-node entity resolution            | ✅ Detected | Fixed: batch load all nodes in 4 queries, resolve in memory (Q7)           |
+| Initiative detail: per-artifact content load | ✅ Detected | Fixed: content loaded on-demand only when artifact is opened (Q2)          |
+| AI session list: per-session content load    | ✅ Detected | Fixed: list queries exclude prompt/response; loaded lazily on session open |

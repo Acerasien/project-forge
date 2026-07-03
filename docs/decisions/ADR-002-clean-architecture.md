@@ -38,10 +38,10 @@ DDD tactical patterns (aggregates, domain events) are applied selectively — to
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
-| Flat architecture (everything in one layer) | Simple to start; becomes unmaintainable as business rules grow. Rejected. |
-| Full DDD across all modules uniformly | Appropriate for core modules; overkill for Settings, Export, Search. DDD applied selectively per Methodology Fit-Check. |
+| Alternative                                 | Why Rejected                                                                                                            |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Flat architecture (everything in one layer) | Simple to start; becomes unmaintainable as business rules grow. Rejected.                                               |
+| Full DDD across all modules uniformly       | Appropriate for core modules; overkill for Settings, Export, Search. DDD applied selectively per Methodology Fit-Check. |
 
 ---
 

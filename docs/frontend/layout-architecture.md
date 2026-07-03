@@ -25,6 +25,7 @@ Forge operates within a single-window Electron shell. The layout uses CSS Grid a
 ```
 
 ### Components:
+
 - **Titlebar:** Custom frameless window drag area. Contains the app title and global sync/workspace status.
 - **Sidebar:** Navigation for Initiatives, Settings, and global search. Separated by a `border-r border-forge-border`.
 - **Main Content Area:** The `<Outlet />` for React Router.
@@ -75,9 +76,10 @@ The core authoring experience.
 ```
 
 ### Components:
+
 - **Resizer:** A 1px vertical border (`border-forge-border`) that is draggable to adjust the split ratio.
 - **Left Pane (Editor):** `CodeMirror 6`. The UI is entirely hidden — it looks like a clean text area. Syntax highlighting uses colors from the Forge palette.
-- **Right Pane (Context):** 
+- **Right Pane (Context):**
   - **Tab 1: Preview:** Rendered Markdown of the current artifact.
   - **Tab 2: AI Session:** Chat interface communicating with the `AIPort`.
 - **Typography:** The editor uses `IBM Plex Sans` for prose and `JetBrains Mono` for code blocks.

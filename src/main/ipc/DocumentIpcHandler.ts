@@ -1,15 +1,15 @@
 import { ipcMain } from 'electron'
-import { DocumentService } from '@application/services/DocumentService'
-import { DocumentDTO, Result } from '@shared/types/ipc'
+import { WorkspaceRuntime } from '../../application/services/WorkspaceRuntime'
+import { DocumentDTO, Result } from '../../shared/types/ipc'
 
 export class DocumentIpcHandler {
-  constructor(private readonly documentService: DocumentService) {}
+  constructor(private readonly runtime: WorkspaceRuntime) {}
 
   private handleError(error: unknown): {
     success: false
     error: { code: string; message: string }
   } {
-    console.error('[IPC Error]', error)
+    console.error('[Document IPC Error]', error)
     const message = error instanceof Error ? error.message : 'Unknown error occurred'
     return { success: false, error: { code: 'DOCUMENT_ERROR', message } }
   }
@@ -26,7 +26,8 @@ export class DocumentIpcHandler {
         preferredToolId: string | null = null
       ): Promise<Result<DocumentDTO>> => {
         try {
-          const doc = await this.documentService.createDocument(
+          const service = this.runtime.getDocumentService()
+          const doc = await service.createDocument(
             initiativeId,
             name,
             extension,
@@ -54,7 +55,8 @@ export class DocumentIpcHandler {
 
     ipcMain.handle('documents:get', async (_, id: string): Promise<Result<DocumentDTO | null>> => {
       try {
-        const doc = await this.documentService.getDocument(id)
+        const service = this.runtime.getDocumentService()
+        const doc = await service.getDocument(id)
         if (!doc) return { success: true, data: null }
         return {
           success: true,
@@ -78,7 +80,8 @@ export class DocumentIpcHandler {
       'documents:list',
       async (_, initiativeId: string): Promise<Result<DocumentDTO[]>> => {
         try {
-          const docs = await this.documentService.listDocuments(initiativeId)
+          const service = this.runtime.getDocumentService()
+          const docs = await service.listDocuments(initiativeId)
           return {
             success: true,
             data: docs.map((doc) => ({
@@ -102,7 +105,8 @@ export class DocumentIpcHandler {
       'documents:update',
       async (_, id: string, content: string): Promise<Result<void>> => {
         try {
-          await this.documentService.updateDocumentContent(id, content)
+          const service = this.runtime.getDocumentService()
+          await service.updateDocumentContent(id, content)
           return { success: true, data: undefined }
         } catch (error) {
           return this.handleError(error)
@@ -112,7 +116,8 @@ export class DocumentIpcHandler {
 
     ipcMain.handle('documents:delete', async (_, id: string): Promise<Result<void>> => {
       try {
-        await this.documentService.deleteDocument(id)
+        const service = this.runtime.getDocumentService()
+        await service.deleteDocument(id)
         return { success: true, data: undefined }
       } catch (error) {
         return this.handleError(error)

@@ -34,7 +34,7 @@ export class BuildArchitectureContext {
     const existingDeploymentArchitecture = artifacts.find(
       (a) => a.type === 'DeploymentArchitecture'
     )
-    const existingADRs = artifacts.filter(a => a.type === 'ADR')
+    const existingADRs = artifacts.filter((a) => a.type === 'ADR')
 
     let relatedEdges: ArtifactRelationship[] = []
     if (existingArchitecture) {

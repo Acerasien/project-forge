@@ -14,6 +14,17 @@ import type { AgentEvent } from '../domain/ai/IAgent'
 const api = {}
 
 const forgeAPI: IForgeAPI = {
+  settings: {
+    get: () => ipcRenderer.invoke('settings:get'),
+    update: (updates) => ipcRenderer.invoke('settings:update', updates),
+    saveProfile: (profile) => ipcRenderer.invoke('settings:saveProfile', profile),
+    deleteProfile: (id) => ipcRenderer.invoke('settings:deleteProfile', id),
+    selectWorkspace: () => ipcRenderer.invoke('settings:selectWorkspace'),
+    initializeWorkspace: (path, profile) =>
+      ipcRenderer.invoke('settings:initializeWorkspace', path, profile),
+    testConnection: (profile) => ipcRenderer.invoke('settings:testConnection', profile),
+    fetchModels: (profile) => ipcRenderer.invoke('settings:fetchModels', profile)
+  },
   initiatives: {
     create: (name: string) => ipcRenderer.invoke('initiatives:create', name),
     get: (id: string) => ipcRenderer.invoke('initiatives:get', id),

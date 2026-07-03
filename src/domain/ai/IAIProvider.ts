@@ -1,5 +1,4 @@
 import { Message } from './Message'
-
 import { ICapability } from './ICapability'
 
 export interface ProviderOptions {
@@ -16,13 +15,15 @@ export type GenerationEvent =
   | { type: 'error'; error: string }
 
 export interface IAIProvider {
-  /**
-   * Generates a stream of text tokens and tool calls from a history of messages.
-   * @param messages The conversation history.
-   * @param options Optional provider-specific settings.
-   * @param signal An optional AbortSignal to cancel the generation.
-   * @returns An async iterable yielding GenerationEvent objects.
-   */
+  readonly name: string
+  readonly supportsStreaming: boolean
+  readonly supportsToolCalling: boolean
+  readonly supportsVision: boolean
+  readonly supportsReasoning: boolean
+
+  testConnection(): Promise<{ success: boolean; latencyMs: number; error?: string }>
+  fetchAvailableModels(): Promise<string[]>
+
   generateStream(
     messages: Message[],
     options?: ProviderOptions,

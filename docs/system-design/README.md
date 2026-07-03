@@ -5,20 +5,20 @@
 
 How Forge runs and behaves at runtime — request lifecycle, data flow, failure recovery, scaling, and observability.
 
-> **Relationship to Architecture:** [Architecture](../architecture/README.md) defines *what* the system is. System Design defines *how it runs*.
+> **Relationship to Architecture:** [Architecture](../architecture/README.md) defines _what_ the system is. System Design defines _how it runs_.
 
-| File | Description |
-|------|-------------|
-| [architecture-diagram.md](architecture-diagram.md) | Runtime component diagram — processes, adapters, and data stores |
-| [data-flow.md](data-flow.md) | 4 critical workflow sequence diagrams (approval, AI generation, task derivation, search) |
-| [agent-orchestration.md](agent-orchestration.md) | The agent execution pipeline, state management, and capability extension points |
-| [capability-packs.md](capability-packs.md) | The organization, integration, and rules for extending the agent with new capabilities |
-| [component-breakdown.md](component-breakdown.md) | All 11 system design sections: API, storage, state, background processes, scalability |
-| [caching-strategy.md](caching-strategy.md) | What is cached, where, for how long, and how it is invalidated |
-| [error-handling.md](error-handling.md) | Failure modes per component and graceful degradation behaviour |
-| [observability.md](observability.md) | Local logging strategy, log levels, key events, debugging workflow |
-| [trade-offs.md](trade-offs.md) | Major design decisions — what was chosen, what was sacrificed |
-| [risks.md](risks.md) | Known risks and open questions before implementation |
+| File                                               | Description                                                                              |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [architecture-diagram.md](architecture-diagram.md) | Runtime component diagram — processes, adapters, and data stores                         |
+| [data-flow.md](data-flow.md)                       | 4 critical workflow sequence diagrams (approval, AI generation, task derivation, search) |
+| [agent-orchestration.md](agent-orchestration.md)   | The agent execution pipeline, state management, and capability extension points          |
+| [capability-packs.md](capability-packs.md)         | The organization, integration, and rules for extending the agent with new capabilities   |
+| [component-breakdown.md](component-breakdown.md)   | All 11 system design sections: API, storage, state, background processes, scalability    |
+| [caching-strategy.md](caching-strategy.md)         | What is cached, where, for how long, and how it is invalidated                           |
+| [error-handling.md](error-handling.md)             | Failure modes per component and graceful degradation behaviour                           |
+| [observability.md](observability.md)               | Local logging strategy, log levels, key events, debugging workflow                       |
+| [trade-offs.md](trade-offs.md)                     | Major design decisions — what was chosen, what was sacrificed                            |
+| [risks.md](risks.md)                               | Known risks and open questions before implementation                                     |
 
 ---
 
@@ -33,13 +33,13 @@ How Forge runs and behaves at runtime — request lifecycle, data flow, failure 
 
 ## Key Design Decisions
 
-| Decision | Chosen Approach |
-|---------|----------------|
-| Internal communication | Electron IPC via typed `contextBridge` — renderer is fully sandboxed |
-| Local persistence | SQLite (`better-sqlite3`, synchronous, WAL mode) |
-| UI state | Zustand stores — mirror of SQLite state, rebuilt on startup |
-| Domain event handling | Inline function calls — no event bus in v1 |
-| AI requests | Async Promise in main process — never blocks IPC event loop |
-| Error model | `Result<T, ForgeError>` — all IPC responses, never throws across boundary |
+| Decision               | Chosen Approach                                                           |
+| ---------------------- | ------------------------------------------------------------------------- |
+| Internal communication | Electron IPC via typed `contextBridge` — renderer is fully sandboxed      |
+| Local persistence      | SQLite (`better-sqlite3`, synchronous, WAL mode)                          |
+| UI state               | Zustand stores — mirror of SQLite state, rebuilt on startup               |
+| Domain event handling  | Inline function calls — no event bus in v1                                |
+| AI requests            | Async Promise in main process — never blocks IPC event loop               |
+| Error model            | `Result<T, ForgeError>` — all IPC responses, never throws across boundary |
 
 See [trade-offs.md](trade-offs.md) for full rationale.

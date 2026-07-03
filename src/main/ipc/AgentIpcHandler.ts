@@ -1,8 +1,8 @@
 import { IpcMain } from 'electron'
-import { EngineeringAgent } from '../../application/services/agents/EngineeringAgent'
+import { WorkspaceRuntime } from '../../application/services/WorkspaceRuntime'
 
 export class AgentIpcHandler {
-  constructor(private agent: EngineeringAgent) {}
+  constructor(private readonly runtime: WorkspaceRuntime) {}
 
   register(ipcMain: IpcMain): void {
     ipcMain.handle(
@@ -11,7 +11,8 @@ export class AgentIpcHandler {
         const { goal, initiativeId } = params
 
         try {
-          const stream = this.agent.execute(goal, initiativeId)
+          const agent = this.runtime.getEngineeringAgent()
+          const stream = agent.execute(goal, initiativeId)
 
           for await (const agentEvent of stream) {
             event.sender.send('agent:event', agentEvent)

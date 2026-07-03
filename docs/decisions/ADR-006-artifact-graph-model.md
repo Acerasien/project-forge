@@ -39,24 +39,24 @@ The graph is a **directed, typed, acyclic graph (DAG)**. Cycle prevention is enf
 
 **Supported relationship types (v1):**
 
-| Type | Semantic |
-|------|---------|
-| DerivedFrom | Task was generated from this Requirement |
-| InformedBy | Architecture or ADR was shaped by this Requirement |
-| DecidedBy | This Architecture element is governed by this ADR |
-| Implements | System Design implements this Architecture element |
-| Generated | AI Session produced content for this Artifact |
-| SupersededBy | This ADR is replaced by another ADR |
+| Type         | Semantic                                           |
+| ------------ | -------------------------------------------------- |
+| DerivedFrom  | Task was generated from this Requirement           |
+| InformedBy   | Architecture or ADR was shaped by this Requirement |
+| DecidedBy    | This Architecture element is governed by this ADR  |
+| Implements   | System Design implements this Architecture element |
+| Generated    | AI Session produced content for this Artifact      |
+| SupersededBy | This ADR is replaced by another ADR                |
 
 ---
 
 ## Alternatives
 
-| Alternative | Why Rejected |
-|-------------|-------------|
+| Alternative                                                                | Why Rejected                                                                                                       |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Implicit relationships via foreign keys only (e.g., `task.requirement_id`) | Simple but not extensible. Cannot express multi-hop traceability or new relationship types without schema changes. |
-| Dedicated graph database (e.g., Neo4j) | Powerful but introduces a second technology and significant operational dependency for a local tool. |
-| In-memory graph rebuilt at startup | Fast queries but loses relationships if not persisted. Requires perfect reconstruction logic. |
+| Dedicated graph database (e.g., Neo4j)                                     | Powerful but introduces a second technology and significant operational dependency for a local tool.               |
+| In-memory graph rebuilt at startup                                         | Fast queries but loses relationships if not persisted. Requires perfect reconstruction logic.                      |
 
 ---
 

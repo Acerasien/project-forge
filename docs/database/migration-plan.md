@@ -164,11 +164,11 @@ Multi-step changes span multiple deployments — acceptable for a desktop app wh
 
 SQLite does not support transactional DDL for all operations. Rollback strategy:
 
-| Scenario | Recovery |
-|---------|---------|
-| Migration fails mid-transaction | ROLLBACK cancels partial changes. DB is in the pre-migration state. |
-| Migration completes but app is broken | Restore from the pre-migration backup created in Step 6. |
-| Backup file missing | User is shown the backup path and error details. Manual SQLite tools (DB Browser for SQLite) can be used to inspect/recover. |
+| Scenario                              | Recovery                                                                                                                     |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Migration fails mid-transaction       | ROLLBACK cancels partial changes. DB is in the pre-migration state.                                                          |
+| Migration completes but app is broken | Restore from the pre-migration backup created in Step 6.                                                                     |
+| Backup file missing                   | User is shown the backup path and error details. Manual SQLite tools (DB Browser for SQLite) can be used to inspect/recover. |
 
 **Rollback is always to the backup, not to a rollback migration script.** Rollback scripts that reverse DDL are brittle in SQLite — the backup approach is more reliable.
 
@@ -176,9 +176,9 @@ SQLite does not support transactional DDL for all operations. Rollback strategy:
 
 ## Migration Version Table (v1)
 
-| Version | Name | Contents |
-|---------|------|---------|
-| 001 | `initial_schema` | All 8 tables, FTS5 virtual table, 5 auto-update triggers, 3 FTS sync triggers, 10 indexes |
+| Version | Name             | Contents                                                                                  |
+| ------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| 001     | `initial_schema` | All 8 tables, FTS5 virtual table, 5 auto-update triggers, 3 FTS sync triggers, 10 indexes |
 
 All v1 changes are additive. No migrations that delete data or remove columns ship in v1.
 
